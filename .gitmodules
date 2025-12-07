@@ -1,0 +1,3 @@
+[submodule "my-towers"]
+	path = src/my-towers
+	url = https://github.com/sswaringin/my-towers.git
