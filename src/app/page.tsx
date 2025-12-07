@@ -14,35 +14,43 @@ import { useState } from "react";
 import { game } from "@/my-towers";
 
 export default function Home() {
-  const [pegCount, setPegCount] = useState(3);
-  const [discCount, setDiscCount] = useState(5);
+  // const [pegCount, setPegCount] = useState(3);
+  // const [discCount, setDiscCount] = useState(5);
   const [newGame, setNewGame] = useState(game());
-  const [board, setBoard] = useState({});
+  // const [board, setBoard] = useState(newGame.board);
   const [moveCount, setMoveCount] = useState(0);
   const [winCount, setWinCount] = useState(0);
   const [sourcePeg, setSourcePeg] = useState("1");
   const [destinationPeg, setDestinationPeg] = useState("2");
   const [message, setMessage] = useState(newGame.message);
 
+  console.log({ newGame });
+
   const handleReset = () => {
     setMoveCount(0);
     setSourcePeg("1");
     setDestinationPeg("2");
-    setBoard({});
+    // setBoard();
   };
 
-  const handleMove = (sourcePeg, destinationPeg) => {
+  const handleMove = (sourcePeg: string, destinationPeg: string) => {
     const sourceIdx = parseInt(sourcePeg) - 1;
     const destIdx = parseInt(destinationPeg) - 1;
     const results = newGame.move(sourceIdx, destIdx);
     setMoveCount(results.moveCount);
-    setBoard(results.board);
+    // setBoard(results.board);
     setMessage(results.message);
 
     if (results.winningState) {
       setWinCount((prev) => prev + 1);
     }
-    console.log({ results });
+
+    setNewGame((prev) => {
+      return {
+        ...prev,
+        ...results,
+      };
+    });
   };
 
   const handleEnd = () => {
@@ -60,8 +68,8 @@ export default function Home() {
 
   const handleStart = () => {
     setNewGame((prev) => {
-      const results = prev.start(pegCount, discCount);
-      setBoard(results.board);
+      const results = prev.start();
+      // setBoard(results.board);
       setMessage(results.message);
       return {
         ...prev,
@@ -70,48 +78,48 @@ export default function Home() {
     });
   };
 
-  const winningGame = () => {
-    handleMove(1, 2);
-    handleMove(1, 3);
-    handleMove(2, 3);
-    handleMove(1, 2);
-    handleMove(3, 1);
-    handleMove(3, 2);
-    handleMove(1, 2);
-    handleMove(1, 3);
-    handleMove(2, 3);
-    handleMove(2, 1);
-    handleMove(3, 1);
-    handleMove(2, 3);
-    handleMove(1, 2);
-    handleMove(1, 3);
-    handleMove(2, 3);
-    handleMove(1, 2);
-    handleMove(3, 2);
-    handleMove(3, 1);
-    handleMove(2, 3);
-    handleMove(1, 2);
-    handleMove(3, 2);
-    handleMove(3, 1);
-    handleMove(2, 3);
-    handleMove(2, 1);
-    handleMove(3, 1);
-    handleMove(3, 2);
-    handleMove(1, 2);
-    handleMove(1, 3);
-    handleMove(2, 3);
-    handleMove(1, 2);
-    handleMove(3, 1);
-    handleMove(3, 2);
-    handleMove(1, 2);
-  };
-  console.log({ newGame });
+  // const winningGame = () => {
+  //   handleMove(1, 2);
+  //   handleMove(1, 3);
+  //   handleMove(2, 3);
+  //   handleMove(1, 2);
+  //   handleMove(3, 1);
+  //   handleMove(3, 2);
+  //   handleMove(1, 2);
+  //   handleMove(1, 3);
+  //   handleMove(2, 3);
+  //   handleMove(2, 1);
+  //   handleMove(3, 1);
+  //   handleMove(2, 3);
+  //   handleMove(1, 2);
+  //   handleMove(1, 3);
+  //   handleMove(2, 3);
+  //   handleMove(1, 2);
+  //   handleMove(3, 2);
+  //   handleMove(3, 1);
+  //   handleMove(2, 3);
+  //   handleMove(1, 2);
+  //   handleMove(3, 2);
+  //   handleMove(3, 1);
+  //   handleMove(2, 3);
+  //   handleMove(2, 1);
+  //   handleMove(3, 1);
+  //   handleMove(3, 2);
+  //   handleMove(1, 2);
+  //   handleMove(1, 3);
+  //   handleMove(2, 3);
+  //   handleMove(1, 2);
+  //   handleMove(3, 1);
+  //   handleMove(3, 2);
+  //   handleMove(1, 2);
+  // };
+  // console.log({ newGame });
 
   return (
     <main className="wrapper">
       <article className="region">
         <div className="stack">
-          <h1 className="font-bold">Towers of Hanoi</h1>
+          <h1 className="font-bold">Towers</h1>
           {/* <div className="cluster">
           <p>{`Peg count: ${pegCount}`}</p>
           <Button
@@ -204,17 +212,17 @@ export default function Home() {
             >
               move
             </Button>
-            <Button onClick={winningGame}>Quick Win</Button>
+            {/* <Button onClick={winningGame}>Quick Win</Button> */}
           </div>
 
           {/* board */}
-          {board?.pegs && (
+          {newGame?.board?.pegs && (
             <>
-              {board?.pegs.map((peg, idx) => {
+              {newGame?.board?.pegs.map((peg, idx) => {
                 return (
                   <div key={idx} className="cluster">
                     <p>{`Peg ${idx + 1}`}</p>
-                    {peg.discs.map((disc, idx) => {
+                    {peg.discs.map((disc: number, idx: number) => {
                       return <p key={idx}>{disc}</p>;
                     })}
                   </div>

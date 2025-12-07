@@ -35,9 +35,6 @@ importers:
       lucide-react:
         specifier: ^0.556.0
         version: 0.556.0(react@19.2.0)
-      my-towers:
-        specifier: link:../my-towers
-        version: link:../my-towers
       next:
         specifier: 16.0.7
         version: 16.0.7(@babel/core@7.28.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
