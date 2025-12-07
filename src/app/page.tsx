@@ -17,18 +17,19 @@ export default function Home() {
   // const [pegCount, setPegCount] = useState(3);
   // const [discCount, setDiscCount] = useState(5);
   const [newGame, setNewGame] = useState(game());
-  // const [board, setBoard] = useState(newGame.board);
   const [moveCount, setMoveCount] = useState(0);
   const [winCount, setWinCount] = useState(0);
   const [sourcePeg, setSourcePeg] = useState("1");
   const [destinationPeg, setDestinationPeg] = useState("2");
   const [message, setMessage] = useState(newGame.message);
+  const [winningState, setWinningState] = useState(false);
 
   const handleReset = () => {
     setMoveCount(0);
     setSourcePeg("1");
     setDestinationPeg("2");
-    // setBoard();
+    setWinningState(false);
+    setNewGame(game());
   };
 
   const handleMove = (sourcePeg: string, destinationPeg: string) => {
@@ -36,11 +37,11 @@ export default function Home() {
     const destIdx = parseInt(destinationPeg) - 1;
     const results = newGame.move(sourceIdx, destIdx);
     setMoveCount(results.moveCount);
-    // setBoard(results.board);
     setMessage(results.message);
 
     if (results.winningState) {
       setWinCount((prev) => prev + 1);
+      setWinningState(true);
     }
 
     setNewGame((prev) => {
@@ -76,43 +77,43 @@ export default function Home() {
     });
   };
 
-  // const winningGame = () => {
-  //   handleMove(1, 2);
-  //   handleMove(1, 3);
-  //   handleMove(2, 3);
-  //   handleMove(1, 2);
-  //   handleMove(3, 1);
-  //   handleMove(3, 2);
-  //   handleMove(1, 2);
-  //   handleMove(1, 3);
-  //   handleMove(2, 3);
-  //   handleMove(2, 1);
-  //   handleMove(3, 1);
-  //   handleMove(2, 3);
-  //   handleMove(1, 2);
-  //   handleMove(1, 3);
-  //   handleMove(2, 3);
-  //   handleMove(1, 2);
-  //   handleMove(3, 2);
-  //   handleMove(3, 1);
-  //   handleMove(2, 3);
-  //   handleMove(1, 2);
-  //   handleMove(3, 2);
-  //   handleMove(3, 1);
-  //   handleMove(2, 3);
-  //   handleMove(2, 1);
-  //   handleMove(3, 1);
-  //   handleMove(3, 2);
-  //   handleMove(1, 2);
-  //   handleMove(1, 3);
-  //   handleMove(2, 3);
-  //   handleMove(1, 2);
-  //   handleMove(3, 1);
-  //   handleMove(3, 2);
-  //   handleMove(1, 2);
-  // };
-  // console.log({ newGame });
-
+  const winningGame = () => {
+    handleMove("1", "2");
+    handleMove("1", "3");
+    handleMove("2", "3");
+    handleMove("1", "2");
+    handleMove("3", "1");
+    handleMove("3", "2");
+    handleMove("1", "2");
+    handleMove("1", "3");
+    handleMove("2", "3");
+    handleMove("2", "1");
+    handleMove("3", "1");
+    handleMove("2", "3");
+    handleMove("1", "2");
+    handleMove("1", "3");
+    handleMove("2", "3");
+    handleMove("1", "2");
+    handleMove("3", "2");
+    handleMove("3", "1");
+    handleMove("2", "3");
+    handleMove("1", "2");
+    handleMove("3", "2");
+    handleMove("3", "1");
+    handleMove("2", "3");
+    handleMove("2", "1");
+    handleMove("3", "1");
+    handleMove("3", "2");
+    handleMove("1", "2");
+    handleMove("1", "3");
+    handleMove("2", "3");
+    handleMove("1", "2");
+    handleMove("3", "1");
+    handleMove("3", "2");
+    handleMove("1", "2");
+  };
+  console.log({ public: process.env.NEXT_PUBLIC_ANALYTICS_ID });
+  console.log({ node: process.env.NODE_ENV });
   return (
     <main className="wrapper">
       <article className="region">
@@ -155,8 +156,11 @@ export default function Home() {
           </div>
 
           <div className="cluster">
-            <Button disabled={newGame.isRunning()} onClick={handleStart}>
-              start
+            <Button
+              disabled={newGame.isRunning()}
+              onClick={winningState ? handleReset : handleStart}
+            >
+              {winningState ? "reset" : "start"}
             </Button>
             <Button disabled={!newGame.isRunning()} onClick={handleEnd}>
               end
@@ -210,7 +214,7 @@ export default function Home() {
             >
               move
             </Button>
-            {/* <Button onClick={winningGame}>Quick Win</Button> */}
+            <Button onClick={winningGame}>Quick Win</Button>
           </div>
 
           {/* board */}

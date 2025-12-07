@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Towers of Hanoi",
+  title: "My Towers",
   description: "Created by Stephen Swaringin",
 };
 
