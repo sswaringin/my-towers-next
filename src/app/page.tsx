@@ -24,8 +24,6 @@ export default function Home() {
   const [destinationPeg, setDestinationPeg] = useState("2");
   const [message, setMessage] = useState(newGame.message);
 
-  console.log({ newGame });
-
   const handleReset = () => {
     setMoveCount(0);
     setSourcePeg("1");
