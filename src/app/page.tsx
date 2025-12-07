@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
-import { game } from "my-towers";
+import { game } from "@/my-towers";
 
 export default function Home() {
   const [pegCount, setPegCount] = useState(3);
@@ -31,13 +31,18 @@ export default function Home() {
     setBoard({});
   };
 
-  const handleMove = () => {
+  const handleMove = (sourcePeg, destinationPeg) => {
     const sourceIdx = parseInt(sourcePeg) - 1;
     const destIdx = parseInt(destinationPeg) - 1;
     const results = newGame.move(sourceIdx, destIdx);
     setMoveCount(results.moveCount);
     setBoard(results.board);
     setMessage(results.message);
+
+    if (results.winningState) {
+      setWinCount((prev) => prev + 1);
+    }
+    console.log({ results });
   };
 
   const handleEnd = () => {
@@ -64,6 +69,43 @@ export default function Home() {
       };
     });
   };
+
+  const winningGame = () => {
+    handleMove(1, 2);
+    handleMove(1, 3);
+    handleMove(2, 3);
+    handleMove(1, 2);
+    handleMove(3, 1);
+    handleMove(3, 2);
+    handleMove(1, 2);
+    handleMove(1, 3);
+    handleMove(2, 3);
+    handleMove(2, 1);
+    handleMove(3, 1);
+    handleMove(2, 3);
+    handleMove(1, 2);
+    handleMove(1, 3);
+    handleMove(2, 3);
+    handleMove(1, 2);
+    handleMove(3, 2);
+    handleMove(3, 1);
+    handleMove(2, 3);
+    handleMove(1, 2);
+    handleMove(3, 2);
+    handleMove(3, 1);
+    handleMove(2, 3);
+    handleMove(2, 1);
+    handleMove(3, 1);
+    handleMove(3, 2);
+    handleMove(1, 2);
+    handleMove(1, 3);
+    handleMove(2, 3);
+    handleMove(1, 2);
+    handleMove(3, 1);
+    handleMove(3, 2);
+    handleMove(1, 2);
+  };
+  console.log({ newGame });
 
   return (
     <main className="wrapper">
@@ -156,9 +198,13 @@ export default function Home() {
             </DropdownMenu>
           </div>
           <div className="cluster">
-            <Button disabled={!newGame.isRunning()} onClick={handleMove}>
+            <Button
+              disabled={!newGame.isRunning()}
+              onClick={() => handleMove(sourcePeg, destinationPeg)}
+            >
               move
             </Button>
+            <Button onClick={winningGame}>Quick Win</Button>
           </div>
 
           {/* board */}
