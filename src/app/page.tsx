@@ -112,13 +112,12 @@ export default function Home() {
     handleMove("3", "2");
     handleMove("1", "2");
   };
-  console.log({ public: process.env.NEXT_PUBLIC_ANALYTICS_ID });
-  console.log({ node: process.env.NODE_ENV });
+
   return (
     <main className="wrapper">
       <article className="region">
         <div className="stack">
-          <h1 className="font-bold">Towers</h1>
+          <h1 className="font-bold">My Towers</h1>
           {/* <div className="cluster">
           <p>{`Peg count: ${pegCount}`}</p>
           <Button
@@ -214,7 +213,9 @@ export default function Home() {
             >
               move
             </Button>
-            <Button onClick={winningGame}>Quick Win</Button>
+            {process.env.NODE_ENV === "development" && (
+              <Button onClick={winningGame}>Quick Win</Button>
+            )}
           </div>
 
           {/* board */}
