@@ -23,6 +23,34 @@ const instructions = ` To win, you must successfully move all of the discs from 
 
 const link = "http://en.wikipedia.org/wiki/Tower_of_Hanoi";
 
+const Disc = ({ value }: { value: number }) => {
+  // detect if the disc can be moved.
+  // if it is moveable, show the grab
+  // else, show cursor-not-allowed
+  return (
+    <svg
+      className="fill-dark dark:fill-light hover:cursor-grab"
+      width="2.5ch"
+      height="2.5ch"
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="50" cy="50" r="40" color="inherit" />
+      <text
+        className="fill-light dark:fill-dark"
+        x="50"
+        y="50"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="40"
+        fontWeight="bold"
+      >
+        {value}
+      </text>
+    </svg>
+  );
+};
+
 export default function Home() {
   // const [pegCount, setPegCount] = useState(3);
   // const [discCount, setDiscCount] = useState(5);
@@ -217,7 +245,7 @@ export default function Home() {
               end
             </Button>
           </div>
-          <p>{message}</p>
+          {newGame?.message && newGame?.error && <p>{message}</p>}
           <div className="cluster">
             <p>{`Source:`}</p>
             <DropdownMenu>
@@ -277,12 +305,12 @@ export default function Home() {
                 return (
                   <div
                     key={idx}
-                    className="cluster"
+                    className="cluster gap-4"
                     onClick={() => handlePegSelect(idx)}
                   >
                     <p>{`Peg ${idx + 1}`}</p>
                     {peg.discs.map((disc: number, idx: number) => {
-                      return <p key={idx}>{disc}</p>;
+                      return <Disc key={idx} value={disc} />; // <p key={idx}>{disc}</p>;
                     })}
                   </div>
                 );
