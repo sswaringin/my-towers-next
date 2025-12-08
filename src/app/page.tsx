@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,19 +11,41 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useState } from "react";
 import { game } from "@/my-towers";
+
+const instructions = ` To win, you must successfully move all of the discs from one peg to another and in their original order. You may only move the topmost disc from a peg, and you may not move a larger disc onto a smaller one.`;
+
+const link = "http://en.wikipedia.org/wiki/Tower_of_Hanoi";
 
 export default function Home() {
   // const [pegCount, setPegCount] = useState(3);
   // const [discCount, setDiscCount] = useState(5);
+  const [isOpen, setIsOpen] = useState(false);
   const [newGame, setNewGame] = useState(game());
   const [moveCount, setMoveCount] = useState(0);
   const [winCount, setWinCount] = useState(0);
   const [sourcePeg, setSourcePeg] = useState("1");
   const [destinationPeg, setDestinationPeg] = useState("2");
+  const [selectedPeg, setSelectedPeg] = useState("source");
   const [message, setMessage] = useState(newGame.message);
   const [winningState, setWinningState] = useState(false);
+
+  const handlePegSelect = (pegValue: number) => {
+    if (selectedPeg === "source") {
+      setSourcePeg((pegValue + 1).toString());
+      setSelectedPeg("destination");
+    }
+    if (selectedPeg === "destination") {
+      setDestinationPeg((pegValue + 1).toString());
+      setSelectedPeg("source");
+    }
+  };
 
   const handleReset = () => {
     setMoveCount(0);
@@ -118,6 +141,30 @@ export default function Home() {
       <article className="region">
         <div className="stack">
           <h1 className="font-bold">My Towers</h1>
+          <Collapsible
+            open={isOpen}
+            onOpenChange={setIsOpen}
+            className="flex flex-col gap-4"
+          >
+            <CollapsibleTrigger asChild>
+              <div className="cluster">
+                <Button variant="ghost">
+                  <span className="text-step--1">instructions</span>
+                  <ChevronsUpDown />
+                </Button>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="flex flex-col gap-2">
+              <p className="text-step--1">
+                Based on the game called{" "}
+                <a className="font-bold hover:underline" href={link}>
+                  Tower of Hanoi
+                </a>
+                .
+              </p>
+              <p className="text-step--1">{instructions}</p>
+            </CollapsibleContent>
+          </Collapsible>
           {/* <div className="cluster">
           <p>{`Peg count: ${pegCount}`}</p>
           <Button
@@ -156,12 +203,17 @@ export default function Home() {
 
           <div className="cluster">
             <Button
+              className="bg-cyan-400"
               disabled={newGame.isRunning()}
               onClick={winningState ? handleReset : handleStart}
             >
               {winningState ? "reset" : "start"}
             </Button>
-            <Button disabled={!newGame.isRunning()} onClick={handleEnd}>
+            <Button
+              className="bg-red-400"
+              disabled={!newGame.isRunning()}
+              onClick={handleEnd}
+            >
               end
             </Button>
           </div>
@@ -223,7 +275,11 @@ export default function Home() {
             <>
               {newGame?.board?.pegs.map((peg, idx) => {
                 return (
-                  <div key={idx} className="cluster">
+                  <div
+                    key={idx}
+                    className="cluster"
+                    onClick={() => handlePegSelect(idx)}
+                  >
                     <p>{`Peg ${idx + 1}`}</p>
                     {peg.discs.map((disc: number, idx: number) => {
                       return <p key={idx}>{disc}</p>;
