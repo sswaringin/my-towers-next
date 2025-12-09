@@ -335,7 +335,11 @@ export default function Home() {
             <CollapsibleContent className="flex flex-col gap-2">
               <p className="text-step--1">
                 Based on the game called{" "}
-                <a className="font-bold hover:underline" href={link}>
+                <a
+                  className="font-bold hover:underline"
+                  href={link}
+                  target="_blank"
+                >
                   Tower of Hanoi
                 </a>
                 .
