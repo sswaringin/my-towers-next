@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronsUpDown } from "lucide-react";
+import styles from "./page.module.css";
+import { ChevronsUpDown, Cog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,6 +17,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { game } from "@/my-towers";
 
@@ -51,10 +54,37 @@ const Disc = ({ value }: { value: number }) => {
   );
 };
 
+const PegIdentifier = ({ value }: { value: number }) => {
+  return (
+    <svg
+      className="fill-red-400"
+      width="2.5ch"
+      height="2.5ch"
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="50" cy="50" r="40" color="inherit" />
+      <text
+        className="fill-white"
+        x="50"
+        y="50"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="40"
+        fontWeight="bold"
+      >
+        {value}
+      </text>
+    </svg>
+  );
+};
+
 export default function Home() {
   // const [pegCount, setPegCount] = useState(3);
   // const [discCount, setDiscCount] = useState(5);
   const [isOpen, setIsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [a11tyControls, setA11tyControls] = useState(false);
   const [newGame, setNewGame] = useState(game());
   const [moveCount, setMoveCount] = useState(0);
   const [winCount, setWinCount] = useState(0);
@@ -193,7 +223,21 @@ export default function Home() {
               <p className="text-step--1">{instructions}</p>
             </CollapsibleContent>
           </Collapsible>
-          {/* <div className="cluster">
+          <Collapsible
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
+            className="flex flex-col gap-4"
+          >
+            <CollapsibleTrigger asChild>
+              <div className="cluster">
+                <Button variant="ghost">
+                  <span className="text-step--1">settings</span>
+                  <Cog />
+                </Button>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="flex flex-col gap-2">
+              {/* <div className="cluster">
           <p>{`Peg count: ${pegCount}`}</p>
           <Button
             disabled={newGame.isRunning()}
@@ -209,7 +253,7 @@ export default function Home() {
           </Button>
         </div> */}
 
-          {/* <div className="cluster">
+              {/* <div className="cluster">
           <p>{`Disc count: ${discCount}`}</p>
           <Button
             disabled={newGame.isRunning()}
@@ -224,6 +268,16 @@ export default function Home() {
             -
           </Button>
         </div> */}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="a11ty-controls"
+                  onClick={() => setA11tyControls(!a11tyControls)}
+                />
+                <Label htmlFor="a11ty-controls">Accessibility Controls</Label>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           <div className="cluster">
             <p>{`Wins: ${winCount}`}</p>
             <p>{`Moves: ${moveCount}`}</p>
@@ -245,62 +299,70 @@ export default function Home() {
               end
             </Button>
           </div>
+
+          {/* game messages */}
           {newGame?.message && newGame?.error && <p>{message}</p>}
-          <div className="cluster">
-            <p>{`Source:`}</p>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">{sourcePeg}</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Source Peg</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={sourcePeg}
-                  onValueChange={setSourcePeg}
+
+          {/* a11ty controls */}
+          {a11tyControls && (
+            <>
+              <div className="cluster">
+                <p>{`Source:`}</p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">{sourcePeg}</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuLabel>Source Peg</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup
+                      value={sourcePeg}
+                      onValueChange={setSourcePeg}
+                    >
+                      <DropdownMenuRadioItem value="1">1</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="2">2</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="3">3</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <div className="cluster">
+                <p>{`Destination:`}</p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">{destinationPeg}</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    <DropdownMenuLabel>Destination Peg</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup
+                      value={destinationPeg}
+                      onValueChange={setDestinationPeg}
+                    >
+                      <DropdownMenuRadioItem value="1">1</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="2">2</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="3">3</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <div className="cluster">
+                <Button
+                  disabled={!newGame.isRunning()}
+                  onClick={() => handleMove(sourcePeg, destinationPeg)}
                 >
-                  <DropdownMenuRadioItem value="1">1</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="2">2</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="3">3</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <div className="cluster">
-            <p>{`Destination:`}</p>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">{destinationPeg}</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Destination Peg</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={destinationPeg}
-                  onValueChange={setDestinationPeg}
-                >
-                  <DropdownMenuRadioItem value="1">1</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="2">2</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="3">3</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <div className="cluster">
-            <Button
-              disabled={!newGame.isRunning()}
-              onClick={() => handleMove(sourcePeg, destinationPeg)}
-            >
-              move
-            </Button>
-            {process.env.NODE_ENV === "development" && (
-              <Button onClick={winningGame}>Quick Win</Button>
-            )}
-          </div>
+                  move
+                </Button>
+                {process.env.NODE_ENV === "development" && (
+                  <Button onClick={winningGame}>Quick Win</Button>
+                )}
+              </div>
+            </>
+          )}
 
           {/* board */}
           {newGame?.board?.pegs && (
-            <>
+            <div className={`${styles.board}`}>
               {newGame?.board?.pegs.map((peg, idx) => {
                 return (
                   <div
@@ -308,14 +370,14 @@ export default function Home() {
                     className="cluster gap-4"
                     onClick={() => handlePegSelect(idx)}
                   >
-                    <p>{`Peg ${idx + 1}`}</p>
+                    <PegIdentifier value={idx + 1} />
                     {peg.discs.map((disc: number, idx: number) => {
-                      return <Disc key={idx} value={disc} />; // <p key={idx}>{disc}</p>;
+                      return <Disc key={idx} value={disc} />;
                     })}
                   </div>
                 );
               })}
-            </>
+            </div>
           )}
         </div>
       </article>

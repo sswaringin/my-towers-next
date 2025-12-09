@@ -1,0 +1,7 @@
+.board {
+  display: grid;
+  grid-template-rows:
+    [peg-1] 1fr
+    [peg-2] 1fr
+    [peg-3] 1fr;
+}
