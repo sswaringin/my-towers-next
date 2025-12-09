@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useEffect, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { TouchBackend } from "react-dnd-touch-backend";
 import { game } from "@/my-towers";
 
 type Peg = {
@@ -77,9 +77,9 @@ const Disc = ({
       }}
     >
       <svg
-        className="fill-dark dark:fill-light hover:cursor-grab"
-        width="2.5ch"
-        height="2.5ch"
+        className="fill-dark dark:fill-light hover:cursor-grab select-none"
+        width="3ch"
+        height="3ch"
         viewBox="0 0 100 100"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -104,8 +104,8 @@ const PegIdentifier = ({ value }: { value: number }) => {
   return (
     <svg
       className="fill-red-400 select-none"
-      width="2.5ch"
-      height="2.5ch"
+      width="3ch"
+      height="3ch"
       viewBox="0 0 100 100"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -162,7 +162,7 @@ const Peg = ({
   return (
     <div
       ref={drop as unknown as React.Ref<HTMLDivElement>} // type casting override
-      className="cluster gap-4"
+      className="cluster gap-3"
       style={{
         background: isOver ? "pink" : "none",
       }}
@@ -192,7 +192,7 @@ const Board = ({
   const [source, setSource] = useState<number>();
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
       <div className={`${styles.board}`}>
         {pegs.map((peg, idx) => {
           return (
