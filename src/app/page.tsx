@@ -19,45 +19,91 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { game } from "@/my-towers";
+
+type Peg = {
+  discs: number[];
+};
+
+type Board = {
+  pegs: Peg[];
+};
+
+type Game = {
+  handleMove: (sourcePeg: number, destinationPeg: number) => void;
+};
 
 const instructions = ` To win, you must successfully move all of the discs from one peg to another and in their original order. You may only move the topmost disc from a peg, and you may not move a larger disc onto a smaller one.`;
 
 const link = "http://en.wikipedia.org/wiki/Tower_of_Hanoi";
 
-const Disc = ({ value }: { value: number }) => {
-  // detect if the disc can be moved.
+const ItemTypes = {
+  DISC: "disc",
+};
+
+const Disc = ({
+  value,
+  source,
+  setSource,
+}: {
+  value: number;
+  source: number;
+  setSource: React.Dispatch<React.SetStateAction<number | undefined>>;
+}) => {
+  // TODO: detect if the disc can be moved.
   // if it is moveable, show the grab
   // else, show cursor-not-allowed
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: ItemTypes.DISC,
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  }));
+
+  useEffect(() => {
+    if (isDragging) {
+      setSource(source);
+    }
+  }, [isDragging, setSource, source]);
+
   return (
-    <svg
-      className="fill-dark dark:fill-light hover:cursor-grab"
-      width="2.5ch"
-      height="2.5ch"
-      viewBox="0 0 100 100"
-      xmlns="http://www.w3.org/2000/svg"
+    <div
+      ref={drag as unknown as React.Ref<HTMLDivElement>} // type casting override
+      style={{
+        background: isDragging ? "green" : "none",
+      }}
     >
-      <circle cx="50" cy="50" r="40" color="inherit" />
-      <text
-        className="fill-light dark:fill-dark"
-        x="50"
-        y="50"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize="40"
-        fontWeight="bold"
+      <svg
+        className="fill-dark dark:fill-light hover:cursor-grab"
+        width="2.5ch"
+        height="2.5ch"
+        viewBox="0 0 100 100"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        {value}
-      </text>
-    </svg>
+        <circle cx="50" cy="50" r="40" color="inherit" />
+        <text
+          className="fill-light dark:fill-dark"
+          x="50"
+          y="50"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="40"
+          fontWeight="bold"
+        >
+          {value}
+        </text>
+      </svg>
+    </div>
   );
 };
 
 const PegIdentifier = ({ value }: { value: number }) => {
   return (
     <svg
-      className="fill-red-400"
+      className="fill-red-400 select-none"
       width="2.5ch"
       height="2.5ch"
       viewBox="0 0 100 100"
@@ -79,6 +125,92 @@ const PegIdentifier = ({ value }: { value: number }) => {
   );
 };
 
+const Peg = ({
+  value,
+  discs = [],
+  sourcePeg,
+  setSourcePeg,
+  handleMove,
+}: {
+  value: number;
+  discs: number[];
+  sourcePeg: number | undefined;
+  setSourcePeg: React.Dispatch<React.SetStateAction<number | undefined>>;
+  handleMove: Game["handleMove"];
+}) => {
+  // how to get source peg? move state of the thing up?
+  const handleDrop = (
+    sourcePeg: number | undefined,
+    destinationPeg: number
+  ) => {
+    if (sourcePeg !== undefined) {
+      handleMove(sourcePeg, destinationPeg);
+    }
+  };
+
+  const [{ isOver }, drop] = useDrop(
+    () => ({
+      accept: ItemTypes.DISC,
+      drop: () => handleDrop(sourcePeg, value),
+      collect: (monitor) => ({
+        isOver: !!monitor.isOver(),
+      }),
+    }),
+    [value, sourcePeg]
+  );
+
+  return (
+    <div
+      ref={drop as unknown as React.Ref<HTMLDivElement>} // type casting override
+      className="cluster gap-4"
+      style={{
+        background: isOver ? "pink" : "none",
+      }}
+    >
+      <PegIdentifier value={value} />
+      {discs?.map((disc: number, idx: number) => {
+        return (
+          <Disc
+            key={idx}
+            value={disc}
+            source={value}
+            setSource={setSourcePeg}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+const Board = ({
+  pegs,
+  handleMove,
+}: {
+  pegs: Peg[];
+  handleMove: (sourcePeg: number, destinationPeg: number) => void;
+}) => {
+  const [source, setSource] = useState<number>();
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div className={`${styles.board}`}>
+        {pegs.map((peg, idx) => {
+          return (
+            <Peg
+              key={idx}
+              value={idx + 1}
+              discs={peg.discs}
+              sourcePeg={source}
+              setSourcePeg={setSource}
+              handleMove={handleMove}
+            ></Peg>
+          );
+        })}
+      </div>
+    </DndProvider>
+  );
+};
+
 export default function Home() {
   // const [pegCount, setPegCount] = useState(3);
   // const [discCount, setDiscCount] = useState(5);
@@ -88,34 +220,22 @@ export default function Home() {
   const [newGame, setNewGame] = useState(game());
   const [moveCount, setMoveCount] = useState(0);
   const [winCount, setWinCount] = useState(0);
-  const [sourcePeg, setSourcePeg] = useState("1");
-  const [destinationPeg, setDestinationPeg] = useState("2");
-  const [selectedPeg, setSelectedPeg] = useState("source");
+  const [sourcePeg, setSourcePeg] = useState(1);
+  const [destinationPeg, setDestinationPeg] = useState(2);
   const [message, setMessage] = useState(newGame.message);
   const [winningState, setWinningState] = useState(false);
 
-  const handlePegSelect = (pegValue: number) => {
-    if (selectedPeg === "source") {
-      setSourcePeg((pegValue + 1).toString());
-      setSelectedPeg("destination");
-    }
-    if (selectedPeg === "destination") {
-      setDestinationPeg((pegValue + 1).toString());
-      setSelectedPeg("source");
-    }
-  };
-
   const handleReset = () => {
     setMoveCount(0);
-    setSourcePeg("1");
-    setDestinationPeg("2");
+    setSourcePeg(1);
+    setDestinationPeg(2);
     setWinningState(false);
     setNewGame(game());
   };
 
-  const handleMove = (sourcePeg: string, destinationPeg: string) => {
-    const sourceIdx = parseInt(sourcePeg) - 1;
-    const destIdx = parseInt(destinationPeg) - 1;
+  const handleMove: Game["handleMove"] = (sourcePeg, destinationPeg) => {
+    const sourceIdx = sourcePeg - 1;
+    const destIdx = destinationPeg - 1;
     const results = newGame.move(sourceIdx, destIdx);
     setMoveCount(results.moveCount);
     setMessage(results.message);
@@ -158,41 +278,41 @@ export default function Home() {
     });
   };
 
-  const winningGame = () => {
-    handleMove("1", "2");
-    handleMove("1", "3");
-    handleMove("2", "3");
-    handleMove("1", "2");
-    handleMove("3", "1");
-    handleMove("3", "2");
-    handleMove("1", "2");
-    handleMove("1", "3");
-    handleMove("2", "3");
-    handleMove("2", "1");
-    handleMove("3", "1");
-    handleMove("2", "3");
-    handleMove("1", "2");
-    handleMove("1", "3");
-    handleMove("2", "3");
-    handleMove("1", "2");
-    handleMove("3", "2");
-    handleMove("3", "1");
-    handleMove("2", "3");
-    handleMove("1", "2");
-    handleMove("3", "2");
-    handleMove("3", "1");
-    handleMove("2", "3");
-    handleMove("2", "1");
-    handleMove("3", "1");
-    handleMove("3", "2");
-    handleMove("1", "2");
-    handleMove("1", "3");
-    handleMove("2", "3");
-    handleMove("1", "2");
-    handleMove("3", "1");
-    handleMove("3", "2");
-    handleMove("1", "2");
-  };
+  // const winningGame = () => {
+  //   handleMove("1", "2");
+  //   handleMove("1", "3");
+  //   handleMove("2", "3");
+  //   handleMove("1", "2");
+  //   handleMove("3", "1");
+  //   handleMove("3", "2");
+  //   handleMove("1", "2");
+  //   handleMove("1", "3");
+  //   handleMove("2", "3");
+  //   handleMove("2", "1");
+  //   handleMove("3", "1");
+  //   handleMove("2", "3");
+  //   handleMove("1", "2");
+  //   handleMove("1", "3");
+  //   handleMove("2", "3");
+  //   handleMove("1", "2");
+  //   handleMove("3", "2");
+  //   handleMove("3", "1");
+  //   handleMove("2", "3");
+  //   handleMove("1", "2");
+  //   handleMove("3", "2");
+  //   handleMove("3", "1");
+  //   handleMove("2", "3");
+  //   handleMove("2", "1");
+  //   handleMove("3", "1");
+  //   handleMove("3", "2");
+  //   handleMove("1", "2");
+  //   handleMove("1", "3");
+  //   handleMove("2", "3");
+  //   handleMove("1", "2");
+  //   handleMove("3", "1");
+  //   handleMove("3", "2");
+  //   handleMove("1", "2");
+  // };
 
   return (
     <main className="wrapper">
@@ -316,8 +436,8 @@ export default function Home() {
                     <DropdownMenuLabel>Source Peg</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuRadioGroup
-                      value={sourcePeg}
-                      onValueChange={setSourcePeg}
+                      value={sourcePeg?.toString() || "1"}
+                      onValueChange={(value) => setSourcePeg(parseInt(value))}
                     >
                       <DropdownMenuRadioItem value="1">1</DropdownMenuRadioItem>
                       <DropdownMenuRadioItem value="2">2</DropdownMenuRadioItem>
@@ -336,8 +456,10 @@ export default function Home() {
                     <DropdownMenuLabel>Destination Peg</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuRadioGroup
-                      value={destinationPeg}
-                      onValueChange={setDestinationPeg}
+                      value={destinationPeg?.toString() || "2"}
+                      onValueChange={(value) =>
+                        setDestinationPeg(parseInt(value))
+                      }
                     >
                       <DropdownMenuRadioItem value="1">1</DropdownMenuRadioItem>
                       <DropdownMenuRadioItem value="2">2</DropdownMenuRadioItem>
@@ -349,35 +471,27 @@ export default function Home() {
               <div className="cluster">
                 <Button
                   disabled={!newGame.isRunning()}
-                  onClick={() => handleMove(sourcePeg, destinationPeg)}
+                  onClick={() => {
+                    if (
+                      sourcePeg !== undefined &&
+                      destinationPeg !== undefined
+                    ) {
+                      handleMove(sourcePeg, destinationPeg);
+                    }
+                  }}
                 >
                   move
                 </Button>
-                {process.env.NODE_ENV === "development" && (
+                {/* {process.env.NODE_ENV === "development" && (
                   <Button onClick={winningGame}>Quick Win</Button>
-                )}
+                )} */}
               </div>
             </>
           )}
 
           {/* board */}
           {newGame?.board?.pegs && (
-            <div className={`${styles.board}`}>
-              {newGame?.board?.pegs.map((peg, idx) => {
-                return (
-                  <div
-                    key={idx}
-                    className="cluster gap-4"
-                    onClick={() => handlePegSelect(idx)}
-                  >
-                    <PegIdentifier value={idx + 1} />
-                    {peg.discs.map((disc: number, idx: number) => {
-                      return <Disc key={idx} value={disc} />;
-                    })}
-                  </div>
-                );
-              })}
-            </div>
+            <Board pegs={newGame?.board?.pegs} handleMove={handleMove}></Board>
           )}
         </div>
       </article>
