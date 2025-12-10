@@ -1,14 +1,11 @@
 "use client";
 
 import styles from "./page.module.css";
-import { ChevronsUpDown, Cog, Info } from "lucide-react";
+import { Cog, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -22,11 +19,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useEffect, useState } from "react";
@@ -54,9 +46,15 @@ const ItemTypes = {
   DISC: "disc",
 };
 
-const SettingsDrawer = () => {
+const SettingsDrawer = ({
+  a11tyControls,
+  setA11tyControls,
+}: {
+  a11tyControls: boolean;
+  setA11tyControls: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   return (
-    <Drawer>
+    <Drawer direction="top">
       <DrawerTrigger asChild>
         <div className="cluster">
           <Button variant="ghost">
@@ -69,14 +67,48 @@ const SettingsDrawer = () => {
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
             <DrawerTitle>Settings</DrawerTitle>
-            <DrawerDescription>This is a settings drawer.</DrawerDescription>
           </DrawerHeader>
-          <div className="p-4 pb-0">
-            <div className="flex items-center justify-center space-x-2">
-              content
+          <div className="p-8">
+            <div className="cluster gap-2">
+              <Label htmlFor="a11ty-controls">Accessibility Controls</Label>
+              <Switch
+                id="a11ty-controls"
+                checked={a11tyControls}
+                onClick={() => setA11tyControls(!a11tyControls)}
+              />
             </div>
           </div>
         </div>
+        {/* <div className="cluster">
+          <p>{`Peg count: ${pegCount}`}</p>
+          <Button
+            disabled={newGame.isRunning()}
+            onClick={() => setPegCount((count) => count + 1)}
+          >
+            +
+          </Button>
+          <Button
+            disabled={newGame.isRunning()}
+            onClick={() => setPegCount((count) => count - 1)}
+          >
+            -
+          </Button>
+        </div> */}
+        {/* <div className="cluster">
+          <p>{`Disc count: ${discCount}`}</p>
+          <Button
+            disabled={newGame.isRunning()}
+            onClick={() => setDiscCount((count) => count + 1)}
+          >
+            +
+          </Button>
+          <Button
+            disabled={newGame.isRunning()}
+            onClick={() => setDiscCount((count) => count - 1)}
+          >
+            -
+          </Button>
+        </div> */}
       </DrawerContent>
     </Drawer>
   );
@@ -84,7 +116,7 @@ const SettingsDrawer = () => {
 
 const InstructionsDrawer = () => {
   return (
-    <Drawer>
+    <Drawer direction="top">
       <DrawerTrigger asChild>
         <div className="cluster">
           <Button variant="ghost">
@@ -98,10 +130,19 @@ const InstructionsDrawer = () => {
           <DrawerHeader>
             <DrawerTitle>Instructions</DrawerTitle>
           </DrawerHeader>
-          <div className="p-4">
-            <div className="flex items-center justify-center space-x-2">
-              content
-            </div>
+          <div className="stack p-8">
+            <p className="text-step--1">
+              Based on the game called{" "}
+              <a
+                className="font-bold hover:underline"
+                href={link}
+                target="_blank"
+              >
+                Tower of Hanoi
+              </a>
+              .
+            </p>
+            <p className="text-step--1">{instructions}</p>
           </div>
         </div>
       </DrawerContent>
@@ -279,8 +320,6 @@ const Board = ({
 export default function Home() {
   // const [pegCount, setPegCount] = useState(3);
   // const [discCount, setDiscCount] = useState(5);
-  const [isOpen, setIsOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [a11tyControls, setA11tyControls] = useState(false);
   const [newGame, setNewGame] = useState(game());
   const [moveCount, setMoveCount] = useState(0);
@@ -387,92 +426,14 @@ export default function Home() {
             <h1 className="font-bold">My Towers</h1>
             <div className="cluster gap-1">
               <InstructionsDrawer />
-              <SettingsDrawer />
+              <SettingsDrawer
+                a11tyControls={a11tyControls}
+                setA11tyControls={setA11tyControls}
+              />
             </div>
           </div>
-          <Collapsible
-            open={isOpen}
-            onOpenChange={setIsOpen}
-            className="flex flex-col gap-4"
-          >
-            <CollapsibleTrigger asChild>
-              <div className="cluster">
-                <Button variant="ghost">
-                  <span className="text-step--1">instructions</span>
-                  <ChevronsUpDown />
-                </Button>
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="flex flex-col gap-2">
-              <p className="text-step--1">
-                Based on the game called{" "}
-                <a
-                  className="font-bold hover:underline"
-                  href={link}
-                  target="_blank"
-                >
-                  Tower of Hanoi
-                </a>
-                .
-              </p>
-              <p className="text-step--1">{instructions}</p>
-            </CollapsibleContent>
-          </Collapsible>
-          <Collapsible
-            open={settingsOpen}
-            onOpenChange={setSettingsOpen}
-            className="flex flex-col gap-4"
-          >
-            <CollapsibleTrigger asChild>
-              <div className="cluster">
-                <Button variant="ghost">
-                  <span className="text-step--1">settings</span>
-                  <Cog />
-                </Button>
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="flex flex-col gap-2">
-              {/* <div className="cluster">
-          <p>{`Peg count: ${pegCount}`}</p>
-          <Button
-            disabled={newGame.isRunning()}
-            onClick={() => setPegCount((count) => count + 1)}
-          >
-            +
-          </Button>
-          <Button
-            disabled={newGame.isRunning()}
-            onClick={() => setPegCount((count) => count - 1)}
-          >
-            -
-          </Button>
-        </div> */}
 
-              {/* <div className="cluster">
-          <p>{`Disc count: ${discCount}`}</p>
-          <Button
-            disabled={newGame.isRunning()}
-            onClick={() => setDiscCount((count) => count + 1)}
-          >
-            +
-          </Button>
-          <Button
-            disabled={newGame.isRunning()}
-            onClick={() => setDiscCount((count) => count - 1)}
-          >
-            -
-          </Button>
-        </div> */}
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="a11ty-controls"
-                  onClick={() => setA11tyControls(!a11tyControls)}
-                />
-                <Label htmlFor="a11ty-controls">Accessibility Controls</Label>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
+          {/* game stats and controls */}
           <div className="cluster">
             <p>{`Wins: ${winCount}`}</p>
             <p>{`Moves: ${moveCount}`}</p>
