@@ -1,7 +1,13 @@
 .board {
-  display: grid;
-  grid-template-rows:
-    [peg-1] 1fr
-    [peg-2] 1fr
-    [peg-3] 1fr;
+  --disc-size: 3ch;
+  --disc-count: 5;
+  display: flex;
+  gap: 1em;
+  min-height: calc(var(--disc-size, 3ch) * var(--disc-count, 5));
+  .peg {
+    display: flex;
+    flex-direction: column-reverse;
+    border: 1px solid var(--foreground, gray);
+    min-width: var(--disc-size, 3ch);
+  }
 }

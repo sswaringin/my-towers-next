@@ -162,12 +162,12 @@ const Peg = ({
   return (
     <div
       ref={drop as unknown as React.Ref<HTMLDivElement>} // type casting override
-      className="cluster gap-3"
+      className={`${styles["peg"]}`}
       style={{
         background: isOver ? "pink" : "none",
       }}
     >
-      <PegIdentifier value={value} />
+      {/* <PegIdentifier value={value} /> */}
       {discs?.map((disc: number, idx: number) => {
         return (
           <Disc
@@ -402,30 +402,26 @@ export default function Home() {
             </CollapsibleContent>
           </Collapsible>
 
-          <div className="cluster">
+          <div className="cluster gap-4">
             <p>{`Wins: ${winCount}`}</p>
             <p>{`Moves: ${moveCount}`}</p>
+            <div className="cluster gap-4">
+              <Button
+                className="bg-cyan-400"
+                disabled={newGame.isRunning()}
+                onClick={winningState ? handleReset : handleStart}
+              >
+                {winningState ? "reset" : "start"}
+              </Button>
+              <Button
+                className="bg-red-400"
+                disabled={!newGame.isRunning()}
+                onClick={handleEnd}
+              >
+                end
+              </Button>
+            </div>
           </div>
-
-          <div className="cluster">
-            <Button
-              className="bg-cyan-400"
-              disabled={newGame.isRunning()}
-              onClick={winningState ? handleReset : handleStart}
-            >
-              {winningState ? "reset" : "start"}
-            </Button>
-            <Button
-              className="bg-red-400"
-              disabled={!newGame.isRunning()}
-              onClick={handleEnd}
-            >
-              end
-            </Button>
-          </div>
-
-          {/* game messages */}
-          {newGame?.message && newGame?.error && <p>{message}</p>}
 
           {/* a11ty controls */}
           {a11tyControls && (
@@ -493,10 +489,20 @@ export default function Home() {
             </>
           )}
 
-          {/* board */}
-          {newGame?.board?.pegs && (
-            <Board pegs={newGame?.board?.pegs} handleMove={handleMove}></Board>
-          )}
+          <div>
+            <div className="stack">
+              {/* board */}
+              {newGame?.board?.pegs && (
+                <Board
+                  pegs={newGame?.board?.pegs}
+                  handleMove={handleMove}
+                ></Board>
+              )}
+
+              {/* game messages */}
+              {newGame?.message && newGame?.error && <p>{message}</p>}
+            </div>
+          </div>
         </div>
       </article>
     </main>
