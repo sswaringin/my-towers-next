@@ -61,6 +61,42 @@ const GameControls = ({
   setSourcePeg: React.Dispatch<React.SetStateAction<number>>;
   sourcePeg: number;
 }) => {
+  const winningGame = () => {
+    handleMove(1, 2);
+    handleMove(1, 3);
+    handleMove(2, 3);
+    handleMove(1, 2);
+    handleMove(3, 1);
+    handleMove(3, 2);
+    handleMove(1, 2);
+    handleMove(1, 3);
+    handleMove(2, 3);
+    handleMove(2, 1);
+    handleMove(3, 1);
+    handleMove(2, 3);
+    handleMove(1, 2);
+    handleMove(1, 3);
+    handleMove(2, 3);
+    handleMove(1, 2);
+    handleMove(3, 2);
+    handleMove(3, 1);
+    handleMove(2, 3);
+    handleMove(1, 2);
+    handleMove(3, 2);
+    handleMove(3, 1);
+    handleMove(2, 3);
+    handleMove(2, 1);
+    handleMove(3, 1);
+    handleMove(3, 2);
+    handleMove(1, 2);
+    handleMove(1, 3);
+    handleMove(2, 3);
+    handleMove(1, 2);
+    handleMove(3, 1);
+    handleMove(3, 2);
+    handleMove(1, 2);
+  };
+
   return (
     <div className="cluster gap-6">
       <div className="cluster gap-2">
@@ -116,9 +152,11 @@ const GameControls = ({
         >
           move
         </Button>
-        {/* {process.env.NODE_ENV === "development" && (
-          <Button onClick={winningGame}>Quick Win</Button>
-        )} */}
+        {process.env.NODE_ENV === "development" && (
+          <Button disabled={!isRunning} onClick={winningGame}>
+            Quick Win
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -451,7 +489,6 @@ export default function Home() {
   const handleStart = () => {
     setNewGame((prev) => {
       const results = prev.start();
-      // setBoard(results.board);
       setMessage(results.message);
       return {
         ...prev,
@@ -459,42 +496,6 @@ export default function Home() {
       };
     });
   };
-
-  // const winningGame = () => {
-  //   handleMove("1", "2");
-  //   handleMove("1", "3");
-  //   handleMove("2", "3");
-  //   handleMove("1", "2");
-  //   handleMove("3", "1");
-  //   handleMove("3", "2");
-  //   handleMove("1", "2");
-  //   handleMove("1", "3");
-  //   handleMove("2", "3");
-  //   handleMove("2", "1");
-  //   handleMove("3", "1");
-  //   handleMove("2", "3");
-  //   handleMove("1", "2");
-  //   handleMove("1", "3");
-  //   handleMove("2", "3");
-  //   handleMove("1", "2");
-  //   handleMove("3", "2");
-  //   handleMove("3", "1");
-  //   handleMove("2", "3");
-  //   handleMove("1", "2");
-  //   handleMove("3", "2");
-  //   handleMove("3", "1");
-  //   handleMove("2", "3");
-  //   handleMove("2", "1");
-  //   handleMove("3", "1");
-  //   handleMove("3", "2");
-  //   handleMove("1", "2");
-  //   handleMove("1", "3");
-  //   handleMove("2", "3");
-  //   handleMove("1", "2");
-  //   handleMove("3", "1");
-  //   handleMove("3", "2");
-  //   handleMove("1", "2");
-  // };
 
   return (
     <main className="wrapper">
@@ -556,7 +557,8 @@ export default function Home() {
               )}
 
               {/* game messages */}
-              {newGame?.message && newGame?.error && <p>{message}</p>}
+              {newGame?.message &&
+                (newGame?.error || newGame?.winningState) && <p>{message}</p>}
             </div>
           </div>
         </div>
