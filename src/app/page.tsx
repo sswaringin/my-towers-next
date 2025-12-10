@@ -1,8 +1,18 @@
 "use client";
 
 import styles from "./page.module.css";
-import { ChevronsUpDown, Cog } from "lucide-react";
+import { ChevronsUpDown, Cog, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +52,61 @@ const link = "http://en.wikipedia.org/wiki/Tower_of_Hanoi";
 
 const ItemTypes = {
   DISC: "disc",
+};
+
+const SettingsDrawer = () => {
+  return (
+    <Drawer>
+      <DrawerTrigger asChild>
+        <div className="cluster">
+          <Button variant="ghost">
+            <span className="text-step--1">settings</span>
+            <Cog />
+          </Button>
+        </div>
+      </DrawerTrigger>
+      <DrawerContent>
+        <div className="mx-auto w-full max-w-sm">
+          <DrawerHeader>
+            <DrawerTitle>Settings</DrawerTitle>
+            <DrawerDescription>This is a settings drawer.</DrawerDescription>
+          </DrawerHeader>
+          <div className="p-4 pb-0">
+            <div className="flex items-center justify-center space-x-2">
+              content
+            </div>
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+};
+
+const InstructionsDrawer = () => {
+  return (
+    <Drawer>
+      <DrawerTrigger asChild>
+        <div className="cluster">
+          <Button variant="ghost">
+            <span className="text-step--1">instructions</span>
+            <Info />
+          </Button>
+        </div>
+      </DrawerTrigger>
+      <DrawerContent>
+        <div className="mx-auto w-full max-w-sm">
+          <DrawerHeader>
+            <DrawerTitle>Instructions</DrawerTitle>
+          </DrawerHeader>
+          <div className="p-4">
+            <div className="flex items-center justify-center space-x-2">
+              content
+            </div>
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
 };
 
 const Disc = ({
@@ -318,7 +383,13 @@ export default function Home() {
     <main className="wrapper">
       <article className="region">
         <div className="stack">
-          <h1 className="font-bold">My Towers</h1>
+          <div className="cluster">
+            <h1 className="font-bold">My Towers</h1>
+            <div className="cluster gap-1">
+              <InstructionsDrawer />
+              <SettingsDrawer />
+            </div>
+          </div>
           <Collapsible
             open={isOpen}
             onOpenChange={setIsOpen}
@@ -402,7 +473,7 @@ export default function Home() {
             </CollapsibleContent>
           </Collapsible>
 
-          <div className="cluster gap-4">
+          <div className="cluster">
             <p>{`Wins: ${winCount}`}</p>
             <p>{`Moves: ${moveCount}`}</p>
             <div className="cluster gap-4">
