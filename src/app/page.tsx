@@ -46,6 +46,84 @@ const ItemTypes = {
   DISC: "disc",
 };
 
+const GameControls = ({
+  handleMove,
+  sourcePeg,
+  setSourcePeg,
+  destinationPeg,
+  setDestinationPeg,
+  isRunning,
+}: {
+  destinationPeg: number;
+  handleMove: Game["handleMove"];
+  isRunning: boolean;
+  setDestinationPeg: React.Dispatch<React.SetStateAction<number>>;
+  setSourcePeg: React.Dispatch<React.SetStateAction<number>>;
+  sourcePeg: number;
+}) => {
+  return (
+    <div className="cluster gap-6">
+      <div className="cluster gap-2">
+        <div className="cluster gap-2">
+          <p>{`Source:`}</p>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">{sourcePeg}</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Source Peg</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup
+                value={sourcePeg?.toString() || "1"}
+                onValueChange={(value) => setSourcePeg(parseInt(value))}
+              >
+                <DropdownMenuRadioItem value="1">1</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="2">2</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="3">3</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="cluster gap-2">
+          <p>{`Destination:`}</p>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">{destinationPeg}</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Destination Peg</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup
+                value={destinationPeg?.toString() || "2"}
+                onValueChange={(value) => setDestinationPeg(parseInt(value))}
+              >
+                <DropdownMenuRadioItem value="1">1</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="2">2</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="3">3</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      <div className="cluster">
+        <Button
+          disabled={!isRunning}
+          onClick={() => {
+            if (sourcePeg !== undefined && destinationPeg !== undefined) {
+              handleMove(sourcePeg, destinationPeg);
+            }
+          }}
+        >
+          move
+        </Button>
+        {/* {process.env.NODE_ENV === "development" && (
+          <Button onClick={winningGame}>Quick Win</Button>
+        )} */}
+      </div>
+    </div>
+  );
+};
+
 const SettingsDrawer = ({
   a11tyControls,
   setA11tyControls,
@@ -455,72 +533,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* a11ty controls */}
-          {a11tyControls && (
-            <>
-              <div className="cluster">
-                <p>{`Source:`}</p>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">{sourcePeg}</Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
-                    <DropdownMenuLabel>Source Peg</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup
-                      value={sourcePeg?.toString() || "1"}
-                      onValueChange={(value) => setSourcePeg(parseInt(value))}
-                    >
-                      <DropdownMenuRadioItem value="1">1</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="2">2</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="3">3</DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="cluster">
-                <p>{`Destination:`}</p>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">{destinationPeg}</Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
-                    <DropdownMenuLabel>Destination Peg</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup
-                      value={destinationPeg?.toString() || "2"}
-                      onValueChange={(value) =>
-                        setDestinationPeg(parseInt(value))
-                      }
-                    >
-                      <DropdownMenuRadioItem value="1">1</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="2">2</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="3">3</DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="cluster">
-                <Button
-                  disabled={!newGame.isRunning()}
-                  onClick={() => {
-                    if (
-                      sourcePeg !== undefined &&
-                      destinationPeg !== undefined
-                    ) {
-                      handleMove(sourcePeg, destinationPeg);
-                    }
-                  }}
-                >
-                  move
-                </Button>
-                {/* {process.env.NODE_ENV === "development" && (
-                  <Button onClick={winningGame}>Quick Win</Button>
-                )} */}
-              </div>
-            </>
-          )}
-
           <div>
             <div className="stack">
               {/* board */}
@@ -529,6 +541,18 @@ export default function Home() {
                   pegs={newGame?.board?.pegs}
                   handleMove={handleMove}
                 ></Board>
+              )}
+
+              {/* controls */}
+              {a11tyControls && (
+                <GameControls
+                  sourcePeg={sourcePeg}
+                  destinationPeg={destinationPeg}
+                  setSourcePeg={setSourcePeg}
+                  setDestinationPeg={setDestinationPeg}
+                  isRunning={newGame.isRunning()}
+                  handleMove={handleMove}
+                />
               )}
 
               {/* game messages */}
