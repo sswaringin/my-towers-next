@@ -499,66 +499,64 @@ export default function Home() {
 
   return (
     <main className="wrapper">
-      <article className="region">
-        <div className="stack">
-          <div className="cluster">
-            <h1 className="font-bold">My Towers</h1>
-            <div className="cluster gap-1">
-              <InstructionsDrawer />
-              <SettingsDrawer
-                a11tyControls={a11tyControls}
-                setA11tyControls={setA11tyControls}
-              />
-            </div>
-          </div>
-
-          {/* game stats and controls */}
-          <div className="cluster">
-            <p>{`Wins: ${winCount}`}</p>
-            <p>{`Moves: ${moveCount}`}</p>
-            <div className="cluster gap-4">
-              <Button
-                className="bg-cyan-400"
-                disabled={newGame.isRunning()}
-                onClick={winningState ? handleReset : handleStart}
-              >
-                {winningState ? "reset" : "start"}
-              </Button>
-              <Button
-                className="bg-red-400"
-                disabled={!newGame.isRunning()}
-                onClick={handleEnd}
-              >
-                end
-              </Button>
-            </div>
-          </div>
-
-          <div>
-            <div className="stack">
-              {/* board */}
-              {newGame?.board?.pegs && (
-                <Board
-                  pegs={newGame?.board?.pegs}
-                  handleMove={handleMove}
-                ></Board>
-              )}
-
-              {/* controls */}
-              {a11tyControls && (
-                <GameControls
-                  sourcePeg={sourcePeg}
-                  destinationPeg={destinationPeg}
-                  setSourcePeg={setSourcePeg}
-                  setDestinationPeg={setDestinationPeg}
-                  isRunning={newGame.isRunning()}
-                  handleMove={handleMove}
+      <article className="">
+        <div className="flex flex-col h-screen">
+          <div className="stack my-auto">
+            <div className="cluster">
+              <h1 className="font-bold">My Towers</h1>
+              <div className="cluster gap-1">
+                <InstructionsDrawer />
+                <SettingsDrawer
+                  a11tyControls={a11tyControls}
+                  setA11tyControls={setA11tyControls}
                 />
-              )}
-
-              {/* game messages */}
-              {newGame?.message &&
-                (newGame?.error || newGame?.winningState) && <p>{message}</p>}
+              </div>
+            </div>
+            {/* game stats and controls */}
+            <div className="cluster">
+              <p>{`Wins: ${winCount}`}</p>
+              <p>{`Moves: ${moveCount}`}</p>
+              <div className="cluster gap-4">
+                <Button
+                  className="bg-cyan-400"
+                  disabled={newGame.isRunning()}
+                  onClick={winningState ? handleReset : handleStart}
+                >
+                  {winningState ? "reset" : "start"}
+                </Button>
+                <Button
+                  className="bg-red-400"
+                  disabled={!newGame.isRunning()}
+                  onClick={handleEnd}
+                >
+                  end
+                </Button>
+              </div>
+            </div>
+            <div>
+              <div className="stack">
+                {/* board */}
+                {newGame?.board?.pegs && (
+                  <Board
+                    pegs={newGame?.board?.pegs}
+                    handleMove={handleMove}
+                  ></Board>
+                )}
+                {/* controls */}
+                {a11tyControls && (
+                  <GameControls
+                    sourcePeg={sourcePeg}
+                    destinationPeg={destinationPeg}
+                    setSourcePeg={setSourcePeg}
+                    setDestinationPeg={setDestinationPeg}
+                    isRunning={newGame.isRunning()}
+                    handleMove={handleMove}
+                  />
+                )}
+                {/* game messages */}
+                {newGame?.message &&
+                  (newGame?.error || newGame?.winningState) && <p>{message}</p>}
+              </div>
             </div>
           </div>
         </div>
