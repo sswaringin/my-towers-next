@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { game } from "@/my-towers";
@@ -436,65 +436,40 @@ const Board = ({
 export default function Home() {
   // const [pegCount, setPegCount] = useState(3);
   // const [discCount, setDiscCount] = useState(5);
+  const [gameState, setGameState] = useState(game().getState());
+  const gameInstance = useRef(game());
   const [a11tyControls, setA11tyControls] = useState(false);
-  const [newGame, setNewGame] = useState(game());
-  const [moveCount, setMoveCount] = useState(0);
   const [winCount, setWinCount] = useState(0);
   const [sourcePeg, setSourcePeg] = useState(1);
   const [destinationPeg, setDestinationPeg] = useState(2);
-  const [message, setMessage] = useState(newGame.message);
   const [winningState, setWinningState] = useState(false);
 
   const handleReset = () => {
-    setMoveCount(0);
-    setSourcePeg(1);
-    setDestinationPeg(2);
     setWinningState(false);
-    setNewGame(game());
+    gameInstance.current = game(); // Create new game instance
+    setGameState(gameInstance.current.getState());
   };
 
   const handleMove: Game["handleMove"] = (sourcePeg, destinationPeg) => {
     const sourceIdx = sourcePeg - 1;
     const destIdx = destinationPeg - 1;
-    const results = newGame.move(sourceIdx, destIdx);
-    setMoveCount(results.moveCount);
-    setMessage(results.message);
+    const snapshot = gameInstance.current.move(sourceIdx, destIdx);
+    setGameState(snapshot);
 
-    if (results.winningState) {
+    if (snapshot?.winningState) {
       setWinCount((prev) => prev + 1);
       setWinningState(true);
     }
-
-    setNewGame((prev) => {
-      return {
-        ...prev,
-        ...results,
-      };
-    });
   };
 
   const handleEnd = () => {
-    handleReset();
-    const results = newGame.end();
-    setMessage(results.message);
-
-    setNewGame((prev) => {
-      return {
-        ...prev,
-        ...results,
-      };
-    });
+    const snapshot = gameInstance.current.end();
+    setGameState(snapshot);
   };
 
   const handleStart = () => {
-    setNewGame((prev) => {
-      const results = prev.start();
-      setMessage(results.message);
-      return {
-        ...prev,
-        ...results,
-      };
-    });
+    const snapshot = gameInstance.current.start();
+    setGameState(snapshot);
   };
 
   return (
@@ -515,18 +490,18 @@ export default function Home() {
             {/* game stats and controls */}
             <div className="cluster">
               <p>{`Wins: ${winCount}`}</p>
-              <p>{`Moves: ${moveCount}`}</p>
+              <p>{`Moves: ${gameState.moveCount}`}</p>
               <div className="cluster gap-4">
                 <Button
                   className="bg-cyan-400"
-                  disabled={newGame.isRunning()}
+                  disabled={gameState.isRunning}
                   onClick={winningState ? handleReset : handleStart}
                 >
                   {winningState ? "reset" : "start"}
                 </Button>
                 <Button
                   className="bg-red-400"
-                  disabled={!newGame.isRunning()}
+                  disabled={!gameState.isRunning}
                   onClick={handleEnd}
                 >
                   end
@@ -536,12 +511,10 @@ export default function Home() {
             <div>
               <div className="stack">
                 {/* board */}
-                {newGame?.board?.pegs && (
-                  <Board
-                    pegs={newGame?.board?.pegs}
-                    handleMove={handleMove}
-                  ></Board>
-                )}
+                <Board
+                  pegs={gameState?.board().pegs || []}
+                  handleMove={handleMove}
+                ></Board>
                 {/* controls */}
                 {a11tyControls && (
                   <GameControls
@@ -549,13 +522,15 @@ export default function Home() {
                     destinationPeg={destinationPeg}
                     setSourcePeg={setSourcePeg}
                     setDestinationPeg={setDestinationPeg}
-                    isRunning={newGame.isRunning()}
+                    isRunning={gameState.isRunning}
                     handleMove={handleMove}
                   />
                 )}
                 {/* game messages */}
-                {newGame?.message &&
-                  (newGame?.error || newGame?.winningState) && <p>{message}</p>}
+                {gameState?.message &&
+                  (gameState?.error || gameState?.winningState) && (
+                    <p>{gameState.message}</p>
+                  )}
               </div>
             </div>
           </div>

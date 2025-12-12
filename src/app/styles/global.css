@@ -142,6 +142,7 @@
   @import "./compositions/stack.css";
 
   /* blocks */
+  @import "./blocks/switch.css";
 }
 
 @layer utilities {
