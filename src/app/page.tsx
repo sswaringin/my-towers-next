@@ -456,7 +456,7 @@ export default function Home() {
     const snapshot = gameInstance.current.move(sourceIdx, destIdx);
     setGameState(snapshot);
 
-    if (snapshot?.winningState) {
+    if (snapshot?.winningState && !snapshot?.error) {
       setWinCount((prev) => prev + 1);
       setWinningState(true);
     }
