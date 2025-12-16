@@ -42,14 +42,14 @@ type Game = {
 type GameResult = {
   moves: number;
   won: boolean;
-  startTime: string; // ISO string for serialization
-  endTime: string;
-  duration: number; // milliseconds
+  // startTime: string;
+  // endTime: string;
+  // duration: number; // milliseconds
 };
 
 type MyTowersData = {
   a11tyControls?: boolean;
-  // gameHistory: GameResult[];
+  gameHistory?: GameResult[];
   totalGames?: number;
   totalWins?: number;
   // stats: {
@@ -489,9 +489,15 @@ export default function Home() {
       const saved = getLocalStorage<MyTowersData>("my-towers");
       const totalGames = saved?.totalGames || 0;
       const totalWins = (saved?.totalWins || 0) + 1;
+      const gameHistory = saved?.gameHistory || [];
+      const gameResult: GameResult = {
+        moves: snapshot.moveCount,
+        won: snapshot.winningState,
+      };
       updateLocalStorage<MyTowersData>("my-towers", {
         totalGames: totalGames + 1,
         totalWins,
+        gameHistory: [...gameHistory, gameResult],
       });
     }
   };
@@ -503,8 +509,14 @@ export default function Home() {
     // update local storage values
     const saved = getLocalStorage<MyTowersData>("my-towers");
     const totalGames = saved?.totalGames || 0;
+    const gameHistory = saved?.gameHistory || [];
+    const gameResult: GameResult = {
+      moves: snapshot.moveCount,
+      won: snapshot.winningState,
+    };
     updateLocalStorage<MyTowersData>("my-towers", {
       totalGames: totalGames + 1,
+      gameHistory: [...gameHistory, gameResult],
     });
   };
 
