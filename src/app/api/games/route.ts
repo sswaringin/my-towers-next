@@ -1,10 +1,24 @@
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
+
 export async function GET(request: Request) {
-  return Response.json({ message: "Hello Next.js world!" });
+  const { data, error, ...rest } = await supabase.from("games").select();
+
+  return Response.json({ data, error, ...rest });
+}
+export async function POST(request: Request) {
+  const { error, ...rest } = await supabase
+    .from("games")
+    .insert({ moves: 32, won: true });
+
+  return Response.json({ request, error, ...rest });
 }
 
 // export async function HEAD(request: Request) {}
-
-// export async function POST(request: Request) {}
 
 // export async function PUT(request: Request) {}
 

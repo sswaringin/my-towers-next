@@ -29,6 +29,9 @@ importers:
       '@radix-ui/react-switch':
         specifier: ^1.2.6
         version: 1.2.6(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@supabase/supabase-js':
+        specifier: ^2.88.0
+        version: 2.88.0
       '@tailwindcss/postcss':
         specifier: ^4.1.17
         version: 4.1.17
@@ -95,16 +98,6 @@ importers:
         version: 1.4.0
       typescript:
         specifier: ^5
-        version: 5.9.3
-
-  src/my-towers:
-    dependencies:
-      '@supabase/supabase-js':
-        specifier: ^2.88.0
-        version: 2.88.0
-    devDependencies:
-      typescript:
-        specifier: ^5.9.3
         version: 5.9.3
 
 packages:
