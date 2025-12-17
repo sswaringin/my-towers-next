@@ -28,3 +28,5 @@ export async function POST(request: Request) {
 
 // If `OPTIONS` is not defined, Next.js will automatically implement `OPTIONS` and set the appropriate Response `Allow` header depending on the other methods defined in the Route Handler.
 // export async function OPTIONS(request: Request) {}
+
+export const runtime = "edge";
