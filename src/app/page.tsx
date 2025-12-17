@@ -48,7 +48,7 @@ type GameResult = {
 };
 
 type MyTowersData = {
-  a11tyControls?: boolean;
+  a11yControls?: boolean;
   gameHistory?: GameResult[];
   totalGames?: number;
   totalWins?: number;
@@ -185,11 +185,11 @@ const GameControls = ({
 };
 
 const SettingsDrawer = ({
-  a11tyControls,
-  setA11tyControls,
+  a11yControls,
+  setA11yControls,
 }: {
-  a11tyControls: boolean;
-  setA11tyControls: React.Dispatch<React.SetStateAction<boolean>>;
+  a11yControls: boolean;
+  setA11yControls: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
     <Drawer direction="top">
@@ -208,15 +208,15 @@ const SettingsDrawer = ({
           </DrawerHeader>
           <div className="p-8">
             <div className="cluster gap-2">
-              <Label htmlFor="a11ty-controls">Accessibility Controls</Label>
+              <Label htmlFor="a11y-controls">Accessibility Controls</Label>
               <Switch
-                id="a11ty-controls"
-                checked={a11tyControls}
+                id="a11y-controls"
+                checked={a11yControls}
                 onClick={() => {
                   updateLocalStorage("my-towers", {
-                    a11tyControls: !a11tyControls,
+                    a11yControls: !a11yControls,
                   });
-                  setA11tyControls(!a11tyControls);
+                  setA11yControls(!a11yControls);
                 }}
               />
             </div>
@@ -462,7 +462,7 @@ const Board: React.FC<BoardProps> = ({ pegs, handleMove }) => {
 export default function Home() {
   // const [pegCount, setPegCount] = useState(3);
   // const [discCount, setDiscCount] = useState(5);
-  const [a11tyControls, setA11tyControls] = useState<boolean>(false);
+  const [a11yControls, setA11yControls] = useState<boolean>(false);
   const [gameState, setGameState] = useState(game().getState());
   const gameInstance = useRef(game());
   const [winCount, setWinCount] = useState(0);
@@ -528,7 +528,7 @@ export default function Home() {
   // initially load values from local storage if available
   useEffect(() => {
     const saved = getLocalStorage<MyTowersData>("my-towers");
-    setA11tyControls(saved?.a11tyControls ?? false);
+    setA11yControls(saved?.a11yControls ?? false);
     setWinCount(saved?.totalWins ?? 0);
   }, []);
 
@@ -542,8 +542,8 @@ export default function Home() {
               <div className="cluster gap-1">
                 <InstructionsDrawer />
                 <SettingsDrawer
-                  a11tyControls={a11tyControls}
-                  setA11tyControls={setA11tyControls}
+                  a11yControls={a11yControls}
+                  setA11yControls={setA11yControls}
                 />
               </div>
             </div>
@@ -576,7 +576,7 @@ export default function Home() {
                   handleMove={handleMove}
                 ></Board>
                 {/* controls */}
-                {a11tyControls && (
+                {a11yControls && (
                   <GameControls
                     sourcePeg={sourcePeg}
                     destinationPeg={destinationPeg}
