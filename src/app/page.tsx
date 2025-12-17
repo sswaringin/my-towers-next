@@ -1,5 +1,4 @@
 "use client";
-
 import styles from "./page.module.css";
 import { Cog, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,8 @@ import { useEffect, useRef, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { game } from "@/my-towers";
+import updateLocalStorage from "@/lib/updateLocalStorage";
+import getLocalStorage from "@/lib/getLocalStorage";
 
 type Peg = {
   discs: number[];
@@ -36,6 +37,29 @@ type Board = {
 
 type Game = {
   handleMove: (sourcePeg: number, destinationPeg: number) => void;
+};
+
+type GameResult = {
+  gameId?: string;
+  moves?: number;
+  won?: boolean;
+  // startTime: string;
+  // endTime: string;
+  // duration: number; // milliseconds
+};
+
+type MyTowersData = {
+  a11yControls?: boolean;
+  gameHistory?: GameResult[];
+  totalGames?: number;
+  totalWins?: number;
+  playerId?: string;
+  // stats: {
+  //   totalGames: number;
+  //   totalWins: number;
+  //   bestMoveCount: number | null;
+  //   averageMoveCount: number | null;
+  // };
 };
 
 const instructions = ` To win, you must successfully move all of the discs from one peg to another and in their original order. You may only move the topmost disc from a peg, and you may not move a larger disc onto a smaller one.`;
@@ -163,11 +187,11 @@ const GameControls = ({
 };
 
 const SettingsDrawer = ({
-  a11tyControls,
-  setA11tyControls,
+  a11yControls,
+  setA11yControls,
 }: {
-  a11tyControls: boolean;
-  setA11tyControls: React.Dispatch<React.SetStateAction<boolean>>;
+  a11yControls: boolean;
+  setA11yControls: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
     <Drawer direction="top">
@@ -186,11 +210,16 @@ const SettingsDrawer = ({
           </DrawerHeader>
           <div className="p-8">
             <div className="cluster gap-2">
-              <Label htmlFor="a11ty-controls">Accessibility Controls</Label>
+              <Label htmlFor="a11y-controls">Accessibility Controls</Label>
               <Switch
-                id="a11ty-controls"
-                checked={a11tyControls}
-                onClick={() => setA11tyControls(!a11tyControls)}
+                id="a11y-controls"
+                checked={a11yControls}
+                onClick={() => {
+                  updateLocalStorage("my-towers", {
+                    a11yControls: !a11yControls,
+                  });
+                  setA11yControls(!a11yControls);
+                }}
               />
             </div>
           </div>
@@ -404,13 +433,12 @@ const Peg = ({
   );
 };
 
-const Board = ({
-  pegs,
-  handleMove,
-}: {
+type BoardProps = {
   pegs: Peg[];
   handleMove: (sourcePeg: number, destinationPeg: number) => void;
-}) => {
+};
+
+const Board: React.FC<BoardProps> = ({ pegs, handleMove }) => {
   const [source, setSource] = useState<number>();
 
   return (
@@ -436,9 +464,9 @@ const Board = ({
 export default function Home() {
   // const [pegCount, setPegCount] = useState(3);
   // const [discCount, setDiscCount] = useState(5);
+  const [a11yControls, setA11yControls] = useState<boolean>(false);
   const [gameState, setGameState] = useState(game().getState());
   const gameInstance = useRef(game());
-  const [a11tyControls, setA11tyControls] = useState(false);
   const [winCount, setWinCount] = useState(0);
   const [sourcePeg, setSourcePeg] = useState(1);
   const [destinationPeg, setDestinationPeg] = useState(2);
@@ -459,18 +487,71 @@ export default function Home() {
     if (snapshot?.winningState && !snapshot?.error) {
       setWinCount((prev) => prev + 1);
       setWinningState(true);
+      // update local storage values
+      const saved = getLocalStorage<MyTowersData>("my-towers");
+      const totalWins = (saved?.totalWins || 0) + 1;
+      const gameHistory = saved?.gameHistory || [];
+      const activeGame = gameHistory[0];
+      const finalGame = {
+        ...activeGame,
+        moves: snapshot.moveCount,
+        won: snapshot.winningState,
+      };
+      const filteredGames = gameHistory.slice(1);
+      updateLocalStorage<MyTowersData>("my-towers", {
+        totalWins,
+        gameHistory: [finalGame, ...filteredGames],
+      });
     }
   };
 
   const handleEnd = () => {
     const snapshot = gameInstance.current.end();
     setGameState(snapshot);
+
+    // update local storage values
+    const saved = getLocalStorage<MyTowersData>("my-towers");
+    const gameHistory = saved?.gameHistory || [];
+    const activeGame = gameHistory[0];
+    const finalGame = {
+      ...activeGame,
+      moves: snapshot.moveCount,
+      won: snapshot.winningState,
+    };
+    const filteredGames = gameHistory.slice(1);
+    updateLocalStorage<MyTowersData>("my-towers", {
+      gameHistory: [finalGame, ...filteredGames],
+    });
   };
 
   const handleStart = () => {
     const snapshot = gameInstance.current.start();
     setGameState(snapshot);
+
+    // update local storage values
+    const saved = getLocalStorage<MyTowersData>("my-towers");
+    const totalGames = saved?.totalGames || 0;
+    const gameHistory = saved?.gameHistory || [];
+    const gameResult: GameResult = { gameId: crypto.randomUUID() };
+    updateLocalStorage<MyTowersData>("my-towers", {
+      totalGames: totalGames + 1,
+      gameHistory: [gameResult, ...gameHistory],
+    });
   };
+
+  // initially load values from local storage if available
+  useEffect(() => {
+    const saved = getLocalStorage<MyTowersData>("my-towers");
+    setA11yControls(saved?.a11yControls ?? false);
+    setWinCount(saved?.totalWins ?? 0);
+
+    if (!saved?.playerId) {
+      // generate and save the userId
+      updateLocalStorage<MyTowersData>("my-towers", {
+        playerId: crypto.randomUUID(),
+      });
+    }
+  }, []);
 
   return (
     <main className="wrapper">
@@ -482,8 +563,8 @@ export default function Home() {
               <div className="cluster gap-1">
                 <InstructionsDrawer />
                 <SettingsDrawer
-                  a11tyControls={a11tyControls}
-                  setA11tyControls={setA11tyControls}
+                  a11yControls={a11yControls}
+                  setA11yControls={setA11yControls}
                 />
               </div>
             </div>
@@ -516,7 +597,7 @@ export default function Home() {
                   handleMove={handleMove}
                 ></Board>
                 {/* controls */}
-                {a11tyControls && (
+                {a11yControls && (
                   <GameControls
                     sourcePeg={sourcePeg}
                     destinationPeg={destinationPeg}
