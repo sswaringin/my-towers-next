@@ -40,8 +40,9 @@ type Game = {
 };
 
 type GameResult = {
-  moves: number;
-  won: boolean;
+  gameId?: string;
+  moves?: number;
+  won?: boolean;
   // startTime: string;
   // endTime: string;
   // duration: number; // milliseconds
@@ -52,6 +53,7 @@ type MyTowersData = {
   gameHistory?: GameResult[];
   totalGames?: number;
   totalWins?: number;
+  playerId?: string;
   // stats: {
   //   totalGames: number;
   //   totalWins: number;
@@ -487,17 +489,18 @@ export default function Home() {
       setWinningState(true);
       // update local storage values
       const saved = getLocalStorage<MyTowersData>("my-towers");
-      const totalGames = saved?.totalGames || 0;
       const totalWins = (saved?.totalWins || 0) + 1;
       const gameHistory = saved?.gameHistory || [];
-      const gameResult: GameResult = {
+      const activeGame = gameHistory[0];
+      const finalGame = {
+        ...activeGame,
         moves: snapshot.moveCount,
         won: snapshot.winningState,
       };
+      const filteredGames = gameHistory.slice(1);
       updateLocalStorage<MyTowersData>("my-towers", {
-        totalGames: totalGames + 1,
         totalWins,
-        gameHistory: [...gameHistory, gameResult],
+        gameHistory: [finalGame, ...filteredGames],
       });
     }
   };
@@ -508,21 +511,32 @@ export default function Home() {
 
     // update local storage values
     const saved = getLocalStorage<MyTowersData>("my-towers");
-    const totalGames = saved?.totalGames || 0;
     const gameHistory = saved?.gameHistory || [];
-    const gameResult: GameResult = {
+    const activeGame = gameHistory[0];
+    const finalGame = {
+      ...activeGame,
       moves: snapshot.moveCount,
       won: snapshot.winningState,
     };
+    const filteredGames = gameHistory.slice(1);
     updateLocalStorage<MyTowersData>("my-towers", {
-      totalGames: totalGames + 1,
-      gameHistory: [...gameHistory, gameResult],
+      gameHistory: [finalGame, ...filteredGames],
     });
   };
 
   const handleStart = () => {
     const snapshot = gameInstance.current.start();
     setGameState(snapshot);
+
+    // update local storage values
+    const saved = getLocalStorage<MyTowersData>("my-towers");
+    const totalGames = saved?.totalGames || 0;
+    const gameHistory = saved?.gameHistory || [];
+    const gameResult: GameResult = { gameId: crypto.randomUUID() };
+    updateLocalStorage<MyTowersData>("my-towers", {
+      totalGames: totalGames + 1,
+      gameHistory: [gameResult, ...gameHistory],
+    });
   };
 
   // initially load values from local storage if available
@@ -530,6 +544,13 @@ export default function Home() {
     const saved = getLocalStorage<MyTowersData>("my-towers");
     setA11yControls(saved?.a11yControls ?? false);
     setWinCount(saved?.totalWins ?? 0);
+
+    if (!saved?.playerId) {
+      // generate and save the userId
+      updateLocalStorage<MyTowersData>("my-towers", {
+        playerId: crypto.randomUUID(),
+      });
+    }
   }, []);
 
   return (
