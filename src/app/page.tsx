@@ -24,7 +24,6 @@ import { useEffect, useRef, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { game } from "@/my-towers";
-import type { Game } from "@/my-towers";
 import updateLocalStorage from "@/lib/updateLocalStorage";
 import getLocalStorage from "@/lib/getLocalStorage";
 
@@ -481,7 +480,7 @@ export default function Home() {
   // const [discCount, setDiscCount] = useState(5);
   const [a11yControls, setA11yControls] = useState<boolean>(false);
   const [gameState, setGameState] = useState(game().getState());
-  const gameInstance = useRef<Game>(game());
+  const gameInstance = useRef(game());
   const [winCount, setWinCount] = useState(0);
   const [sourcePeg, setSourcePeg] = useState(1);
   const [destinationPeg, setDestinationPeg] = useState(2);
