@@ -28,10 +28,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get("userId");
+    const { userId, gameStart, gameId } = await request.json();
     if (!userId) {
       throw new Error("missing required param");
     }
@@ -43,10 +42,11 @@ export async function POST(request: NextRequest) {
 
     const { error, ...rest } = await supabase
       .from("games")
-      .insert({ userId, moves: 0, won: false })
+      .insert({ id: gameId, userId, gameStart })
       .select();
 
     if (error) {
+      console.error(error);
       throw new Error("error from supabase");
     }
 

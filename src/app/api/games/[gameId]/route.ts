@@ -19,18 +19,33 @@ export async function GET(
   return Response.json({ data, error, ...rest });
 }
 
-export async function POST(
+export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ gameId: string }> }
 ) {
-  const { gameId } = await params;
+  try {
+    const { userId, gameStop, won, moves } = await request.json();
+    const { gameId } = await params;
 
-  const { error, ...rest } = await supabase
-    .from("games")
-    .update({ won: true, moves: 32 })
-    .eq("id", gameId);
+    if (!userId || !gameId) {
+      throw new Error("missing required param");
+    }
 
-  return Response.json({ error, ...rest });
+    const { error, ...rest } = await supabase
+      .from("games")
+      .update({ gameStop, won, moves })
+      .eq("id", gameId)
+      .select();
+
+    if (error) {
+      console.error(error);
+      throw new Error("error from supabase");
+    }
+    return Response.json({ error, ...rest });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ message: "something went wrong" }, { status: 400 });
+  }
 }
 
 export const runtime = "edge";
