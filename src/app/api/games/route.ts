@@ -1,11 +1,6 @@
 import { type NextRequest } from "next/server";
 import rateLimitByKey from "@/lib/rateLimitByKey";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env?.SUPABASE_URL || "",
-  process.env?.SUPABASE_SECRET || ""
-);
+import supabase from "@/lib/client";
 
 export async function GET(request: NextRequest) {
   try {
