@@ -23,7 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { useEffect, useRef, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
-import { game, type GameState } from "@/my-towers";
+import { game } from "@/my-towers";
 import updateLocalStorage from "@/lib/updateLocalStorage";
 import getLocalStorage from "@/lib/getLocalStorage";
 
@@ -479,7 +479,7 @@ export default function Home() {
   // const [pegCount, setPegCount] = useState(3);
   // const [discCount, setDiscCount] = useState(5);
   const [a11yControls, setA11yControls] = useState<boolean>(false);
-  const [gameState, setGameState] = useState<GameState>(game().getState());
+  const [gameState, setGameState] = useState(game().getState());
   const gameInstance = useRef(game());
   const [winCount, setWinCount] = useState(0);
   const [sourcePeg, setSourcePeg] = useState(1);
