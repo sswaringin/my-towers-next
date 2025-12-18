@@ -23,7 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { useEffect, useRef, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
-import { game, type GameState } from "@/my-towers/dist";
+import { game, type GameState } from "@/my-towers";
 import updateLocalStorage from "@/lib/updateLocalStorage";
 import getLocalStorage from "@/lib/getLocalStorage";
 
