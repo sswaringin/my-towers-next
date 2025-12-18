@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { game } from "@/my-towers";
+import type { Game } from "@/my-towers";
 import updateLocalStorage from "@/lib/updateLocalStorage";
 import getLocalStorage from "@/lib/getLocalStorage";
 
@@ -35,7 +36,7 @@ type Board = {
   pegs: Peg[];
 };
 
-type Game = {
+type GameState = {
   handleMove: (sourcePeg: number, destinationPeg: number) => void;
 };
 
@@ -93,7 +94,7 @@ const GameControls = ({
   isRunning,
 }: {
   destinationPeg: number;
-  handleMove: Game["handleMove"];
+  handleMove: GameState["handleMove"];
   isRunning: boolean;
   setDestinationPeg: React.Dispatch<React.SetStateAction<number>>;
   setSourcePeg: React.Dispatch<React.SetStateAction<number>>;
@@ -401,7 +402,7 @@ const Peg = ({
   discs: number[];
   sourcePeg: number | undefined;
   setSourcePeg: React.Dispatch<React.SetStateAction<number | undefined>>;
-  handleMove: Game["handleMove"];
+  handleMove: GameState["handleMove"];
 }) => {
   // how to get source peg? move state of the thing up?
   const handleDrop = (
@@ -480,7 +481,7 @@ export default function Home() {
   // const [discCount, setDiscCount] = useState(5);
   const [a11yControls, setA11yControls] = useState<boolean>(false);
   const [gameState, setGameState] = useState(game().getState());
-  const gameInstance = useRef(game());
+  const gameInstance = useRef<Game>(game());
   const [winCount, setWinCount] = useState(0);
   const [sourcePeg, setSourcePeg] = useState(1);
   const [destinationPeg, setDestinationPeg] = useState(2);
@@ -536,7 +537,7 @@ export default function Home() {
     setGameState(gameInstance.current.getState());
   };
 
-  const handleMove: Game["handleMove"] = (sourcePeg, destinationPeg) => {
+  const handleMove: GameState["handleMove"] = (sourcePeg, destinationPeg) => {
     const sourceIdx = sourcePeg - 1;
     const destIdx = destinationPeg - 1;
     const snapshot = gameInstance.current.move(sourceIdx, destIdx);
