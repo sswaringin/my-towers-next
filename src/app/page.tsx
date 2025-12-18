@@ -472,6 +472,27 @@ export default function Home() {
   const [destinationPeg, setDestinationPeg] = useState(2);
   const [winningState, setWinningState] = useState(false);
 
+  const handleFetch = async () => {
+    try {
+      const saved = getLocalStorage<MyTowersData>("my-towers");
+
+      const url = `/api/games?userId=${saved?.playerId}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Something went wrong", error);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Something went wrong", error);
+    }
+  };
+
   const handleReset = () => {
     setWinningState(false);
     gameInstance.current = game(); // Create new game instance
@@ -524,15 +545,18 @@ export default function Home() {
     });
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
     const snapshot = gameInstance.current.start();
     setGameState(snapshot);
+
+    const { data } = await handleFetch();
+    const gameId = data[0]?.id || crypto.randomUUID();
 
     // update local storage values
     const saved = getLocalStorage<MyTowersData>("my-towers");
     const totalGames = saved?.totalGames || 0;
     const gameHistory = saved?.gameHistory || [];
-    const gameResult: GameResult = { gameId: crypto.randomUUID() };
+    const gameResult: GameResult = { gameId };
     updateLocalStorage<MyTowersData>("my-towers", {
       totalGames: totalGames + 1,
       gameHistory: [gameResult, ...gameHistory],

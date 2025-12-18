@@ -1,21 +1,60 @@
+import { type NextRequest } from "next/server";
+import rateLimitByKey from "@/lib/rateLimitByKey";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env?.SUPABASE_URL || "",
-  process.env?.SUPABASE_KEY || ""
+  process.env?.SUPABASE_SECRET || ""
 );
 
-export async function GET(request: Request) {
-  const { data, error, ...rest } = await supabase.from("games").select();
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const userId = searchParams.get("userId");
+    if (!userId) {
+      throw new Error("missing required param");
+    }
 
-  return Response.json({ data, error, ...rest });
+    const rateLimitExceeded = rateLimitByKey(userId);
+    if (rateLimitExceeded) {
+      throw new Error("rate limit exceeded");
+    }
+
+    const { data, error, ...rest } = await supabase.from("games").select();
+    return Response.json({ data, error, ...rest });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ message: "something went wrong" }, { status: 400 });
+  }
 }
-export async function POST(request: Request) {
-  const { error, ...rest } = await supabase
-    .from("games")
-    .insert({ moves: 32, won: true });
 
-  return Response.json({ request, error, ...rest });
+export async function POST(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const userId = searchParams.get("userId");
+    if (!userId) {
+      throw new Error("missing required param");
+    }
+
+    const rateLimitExceeded = rateLimitByKey(userId);
+    if (rateLimitExceeded) {
+      throw new Error("rate limit exceeded");
+    }
+
+    const { error, ...rest } = await supabase
+      .from("games")
+      .insert({ userId, moves: 0, won: false })
+      .select();
+
+    if (error) {
+      throw new Error("error from supabase");
+    }
+
+    return Response.json({ ...rest });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ message: "something went wrong" }, { status: 400 });
+  }
 }
 
 // export async function HEAD(request: Request) {}
