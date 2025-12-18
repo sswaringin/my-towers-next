@@ -23,8 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { useEffect, useRef, useState } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
-import { game } from "@/my-towers";
-import type { GameState } from "@/my-towers";
+import { game, type GameState } from "@/my-towers";
 import updateLocalStorage from "@/lib/updateLocalStorage";
 import getLocalStorage from "@/lib/getLocalStorage";
 
@@ -553,8 +552,10 @@ export default function Home() {
       const gameHistory = saved?.gameHistory || [];
       const activeGame = gameHistory[0];
       const gameId = activeGame?.gameId || "";
+      const gameStop = snapshot.gameStop || new Date().toISOString();
       const finalGame = {
         ...activeGame,
+        gameStop,
         moves: snapshot.moveCount,
         won: snapshot.winningState,
       };
@@ -568,7 +569,7 @@ export default function Home() {
       handleGameEnd({
         userId,
         gameId,
-        gameStop: snapshot.gameStop,
+        gameStop,
         moves: snapshot.moveCount,
         won: snapshot.winningState,
       });
@@ -585,11 +586,12 @@ export default function Home() {
     const gameHistory = saved?.gameHistory || [];
     const activeGame = gameHistory[0];
     const gameId = activeGame?.gameId || "";
+    const gameStop = snapshot.gameStop || new Date().toISOString();
     const finalGame = {
       ...activeGame,
       moves: snapshot.moveCount,
       won: snapshot.winningState,
-      gameStop: snapshot.gameStop,
+      gameStop,
     };
     const filteredGames = gameHistory.slice(1);
     updateLocalStorage<MyTowersData>("my-towers", {
@@ -600,7 +602,7 @@ export default function Home() {
     await handleGameEnd({
       userId,
       gameId,
-      gameStop: snapshot.gameStop,
+      gameStop,
       moves: snapshot.moveCount,
       won: snapshot.winningState,
     });
@@ -617,7 +619,9 @@ export default function Home() {
     const totalGames = saved?.totalGames || 0;
     const gameHistory = saved?.gameHistory || [];
     const gameId = crypto.randomUUID();
-    const gameStart = new Date(snapshot.gameStart).toISOString();
+    const gameStart = snapshot?.gameStart
+      ? new Date(snapshot?.gameStart).toISOString()
+      : new Date().toISOString();
     const gameResult: GameResult = { gameId, gameStart };
     updateLocalStorage<MyTowersData>("my-towers", {
       totalGames: totalGames + 1,
