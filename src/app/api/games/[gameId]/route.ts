@@ -1,10 +1,21 @@
 import supabase from "@/lib/client";
+import rateLimitByKey from "@/lib/rateLimitByKey";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ gameId: string }> }
 ) {
+  const { userId } = await request.json();
   const { gameId } = await params;
+
+  if (!userId || !gameId) {
+    throw new Error("missing required param");
+  }
+
+  const rateLimitExceeded = rateLimitByKey(userId);
+  if (rateLimitExceeded) {
+    throw new Error("rate limit exceeded");
+  }
 
   const { data, error, ...rest } = await supabase
     .from("games")
@@ -24,6 +35,11 @@ export async function PATCH(
 
     if (!userId || !gameId) {
       throw new Error("missing required param");
+    }
+
+    const rateLimitExceeded = rateLimitByKey(userId);
+    if (rateLimitExceeded) {
+      throw new Error("rate limit exceeded");
     }
 
     const { error, ...rest } = await supabase

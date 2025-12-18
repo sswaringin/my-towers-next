@@ -4,8 +4,7 @@ import supabase from "@/lib/client";
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get("userId");
+    const { userId } = await request.json();
     if (!userId) {
       throw new Error("missing required param");
     }
