@@ -43,8 +43,8 @@ type GameResult = {
   gameId?: string;
   moves?: number;
   won?: boolean;
-  // startTime: string;
-  // endTime: string;
+  gameStart?: string;
+  gameStop?: string;
   // duration: number; // milliseconds
 };
 
@@ -61,6 +61,20 @@ type MyTowersData = {
   //   averageMoveCount: number | null;
   // };
 };
+
+interface GameEndPayload {
+  userId: string;
+  gameId: string;
+  gameStop: string;
+  moves: number;
+  won: boolean;
+}
+
+interface GameStartPayload {
+  userId: string;
+  gameId: string;
+  gameStart: string;
+}
 
 const instructions = ` To win, you must successfully move all of the discs from one peg to another and in their original order. You may only move the topmost disc from a peg, and you may not move a larger disc onto a smaller one.`;
 
@@ -472,6 +486,50 @@ export default function Home() {
   const [destinationPeg, setDestinationPeg] = useState(2);
   const [winningState, setWinningState] = useState(false);
 
+  const handleGameStart = async (payload: GameStartPayload) => {
+    try {
+      const url = `/api/games`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...payload,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Something went wrong", error);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Something went wrong", error);
+    }
+  };
+
+  const handleGameEnd = async (payload: GameEndPayload) => {
+    try {
+      if (!payload?.gameId) throw new Error("no game to update");
+
+      const url = `/api/games/${payload.gameId}`;
+      const response = await fetch(url, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Something went wrong", error);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Something went wrong", error);
+    }
+  };
+
   const handleReset = () => {
     setWinningState(false);
     gameInstance.current = game(); // Create new game instance
@@ -489,11 +547,15 @@ export default function Home() {
       setWinningState(true);
       // update local storage values
       const saved = getLocalStorage<MyTowersData>("my-towers");
+      const userId = saved?.playerId || "";
       const totalWins = (saved?.totalWins || 0) + 1;
       const gameHistory = saved?.gameHistory || [];
       const activeGame = gameHistory[0];
+      const gameId = activeGame?.gameId || "";
+      const gameStop = snapshot.gameStop || new Date().toISOString();
       const finalGame = {
         ...activeGame,
+        gameStop,
         moves: snapshot.moveCount,
         won: snapshot.winningState,
       };
@@ -502,41 +564,72 @@ export default function Home() {
         totalWins,
         gameHistory: [finalGame, ...filteredGames],
       });
+
+      // update persistent storage
+      handleGameEnd({
+        userId,
+        gameId,
+        gameStop,
+        moves: snapshot.moveCount,
+        won: snapshot.winningState,
+      });
     }
   };
 
-  const handleEnd = () => {
+  const handleEnd = async () => {
     const snapshot = gameInstance.current.end();
     setGameState(snapshot);
 
     // update local storage values
     const saved = getLocalStorage<MyTowersData>("my-towers");
+    const userId = saved?.playerId || "";
     const gameHistory = saved?.gameHistory || [];
     const activeGame = gameHistory[0];
+    const gameId = activeGame?.gameId || "";
+    const gameStop = snapshot.gameStop || new Date().toISOString();
     const finalGame = {
       ...activeGame,
       moves: snapshot.moveCount,
       won: snapshot.winningState,
+      gameStop,
     };
     const filteredGames = gameHistory.slice(1);
     updateLocalStorage<MyTowersData>("my-towers", {
       gameHistory: [finalGame, ...filteredGames],
     });
+
+    // update persistent storage
+    await handleGameEnd({
+      userId,
+      gameId,
+      gameStop,
+      moves: snapshot.moveCount,
+      won: snapshot.winningState,
+    });
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
+    // update local state
     const snapshot = gameInstance.current.start();
     setGameState(snapshot);
 
     // update local storage values
     const saved = getLocalStorage<MyTowersData>("my-towers");
+    const userId = saved?.playerId || "";
     const totalGames = saved?.totalGames || 0;
     const gameHistory = saved?.gameHistory || [];
-    const gameResult: GameResult = { gameId: crypto.randomUUID() };
+    const gameId = crypto.randomUUID();
+    const gameStart = snapshot?.gameStart
+      ? new Date(snapshot?.gameStart).toISOString()
+      : new Date().toISOString();
+    const gameResult: GameResult = { gameId, gameStart };
     updateLocalStorage<MyTowersData>("my-towers", {
       totalGames: totalGames + 1,
       gameHistory: [gameResult, ...gameHistory],
     });
+
+    // update persistent storage
+    await handleGameStart({ userId, gameId, gameStart });
   };
 
   // initially load values from local storage if available
