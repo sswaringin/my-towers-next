@@ -1,65 +1,61 @@
-import { type NextRequest } from "next/server";
 import rateLimitByKey from "@/lib/rateLimitByKey";
 import supabase from "@/lib/client";
+import { mediator } from "@/lib/mediator";
 
-export async function GET(request: NextRequest) {
-  try {
-    const { userId } = await request.json();
-    if (!userId) {
-      throw new Error("missing required param");
-    }
+const checkParams = async (ctx, next) => {
+  const { userId, gameStart, gameId } = ctx;
 
-    const rateLimitExceeded = rateLimitByKey(userId);
-    if (rateLimitExceeded) {
-      throw new Error("rate limit exceeded");
-    }
-
-    const { data, error, ...rest } = await supabase.from("games").select();
-    return Response.json({ data, error, ...rest });
-  } catch (error) {
-    console.error(error);
-    return Response.json({ message: "something went wrong" }, { status: 400 });
+  if (!userId || !gameStart || !gameId) {
+    ctx.response = { error: "missing required params" };
+    ctx.status = 400;
+    return;
   }
-}
+
+  // if no issues, go to the next middleware
+  await next();
+};
+
+const checkRateLimit = async (ctx, next) => {
+  const { userId } = ctx;
+
+  const rateLimitExceeded = rateLimitByKey(userId);
+  if (rateLimitExceeded) {
+    ctx.response = { error: "rate limit exceeded" };
+    ctx.status = 400;
+    return;
+  }
+
+  // if no issues, go to the next middleware
+  await next();
+};
+
+const makeDbCall = async (ctx, next) => {
+  const { userId, gameStart, gameId } = ctx;
+
+  const { error, ...rest } = await supabase
+    .from("games")
+    .insert({ id: gameId, userId, gameStart })
+    .select();
+
+  if (error) {
+    ctx.response = { error: "error from supabase" };
+    ctx.status = 400;
+    return;
+  }
+
+  ctx.response = { ...rest };
+};
 
 export async function POST(request: Request) {
-  try {
-    const { userId, gameStart, gameId } = await request.json();
-    if (!userId) {
-      throw new Error("missing required param");
-    }
-
-    const rateLimitExceeded = rateLimitByKey(userId);
-    if (rateLimitExceeded) {
-      throw new Error("rate limit exceeded");
-    }
-
-    const { error, ...rest } = await supabase
-      .from("games")
-      .insert({ id: gameId, userId, gameStart })
-      .select();
-
-    if (error) {
-      console.error(error);
-      throw new Error("error from supabase");
-    }
-
-    return Response.json({ ...rest });
-  } catch (error) {
-    console.error(error);
-    return Response.json({ message: "something went wrong" }, { status: 400 });
-  }
+  const body = await request.json();
+  const context = {
+    ...body,
+    response: null,
+    status: null,
+  };
+  const pipeline = mediator(checkParams, checkRateLimit, makeDbCall);
+  await pipeline(context);
+  return Response.json(context.response, { status: context.status || 200 });
 }
-
-// export async function HEAD(request: Request) {}
-
-// export async function PUT(request: Request) {}
-
-// export async function DELETE(request: Request) {}
-
-// export async function PATCH(request: Request) {}
-
-// If `OPTIONS` is not defined, Next.js will automatically implement `OPTIONS` and set the appropriate Response `Allow` header depending on the other methods defined in the Route Handler.
-// export async function OPTIONS(request: Request) {}
 
 export const runtime = "edge";
