@@ -1,8 +1,16 @@
 import rateLimitByKey from "@/lib/rateLimitByKey";
 import supabase from "@/lib/client";
-import { mediator } from "@/lib/mediator";
+import { mediator, Middleware } from "@/lib/mediator";
 
-const checkParams = async (ctx, next) => {
+interface GameContext {
+  userId?: string;
+  gameStart?: string;
+  gameId?: string;
+  response?: { error?: string };
+  status?: number;
+}
+
+const checkParams: Middleware<GameContext> = async (ctx, next) => {
   const { userId, gameStart, gameId } = ctx;
 
   if (!userId || !gameStart || !gameId) {
@@ -15,10 +23,12 @@ const checkParams = async (ctx, next) => {
   await next();
 };
 
-const checkRateLimit = async (ctx, next) => {
+const checkRateLimit: Middleware<GameContext> = async (ctx, next) => {
   const { userId } = ctx;
 
+  if (!userId) return;
   const rateLimitExceeded = rateLimitByKey(userId);
+
   if (rateLimitExceeded) {
     ctx.response = { error: "rate limit exceeded" };
     ctx.status = 400;
@@ -29,7 +39,7 @@ const checkRateLimit = async (ctx, next) => {
   await next();
 };
 
-const makeDbCall = async (ctx, next) => {
+const makeDbCall: Middleware<GameContext> = async (ctx) => {
   const { userId, gameStart, gameId } = ctx;
 
   const { error, ...rest } = await supabase
@@ -43,7 +53,7 @@ const makeDbCall = async (ctx, next) => {
     return;
   }
 
-  ctx.response = { ...rest };
+  ctx.response = { ...rest, error: undefined };
 };
 
 export async function POST(request: Request) {
@@ -53,9 +63,14 @@ export async function POST(request: Request) {
     response: null,
     status: null,
   };
-  const pipeline = mediator(checkParams, checkRateLimit, makeDbCall);
-  await pipeline(context);
-  return Response.json(context.response, { status: context.status || 200 });
+  try {
+    const pipeline = mediator(checkParams, checkRateLimit, makeDbCall);
+    await pipeline(context);
+    return Response.json(context.response, { status: context.status || 200 });
+  } catch (error) {
+    console.error("Pipeline error:", error);
+    return Response.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 export const runtime = "edge";

@@ -1,9 +1,16 @@
+type NextFn = () => Promise<void>;
+
+export type Middleware<TContext> = (
+  ctx: TContext,
+  next: NextFn
+) => Promise<void>;
+
 export const mediator =
-  (...fns) =>
-  async (context) => {
+  <Context extends object>(...fns: Middleware<Context>[]) =>
+  async (context: Context) => {
     const pipeline = [...fns];
 
-    const runner = async (idx) => {
+    const runner = async (idx: number) => {
       const middleware = pipeline[idx];
       if (!middleware) return;
 
